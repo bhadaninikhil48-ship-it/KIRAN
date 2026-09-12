@@ -15,6 +15,7 @@ import "./App.css";
 
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <BrowserRouter>
@@ -23,10 +24,16 @@ function App() {
         <Sidebar
           isOpen={mobileMenuOpen}
           onClose={() => setMobileMenuOpen(false)}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
+        <div
+          className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
+            isCollapsed ? "lg:pl-20" : "lg:pl-64"
+          }`}
+        >
           <Navbar onMenuToggle={() => setMobileMenuOpen((prev) => !prev)} />
 
           <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
