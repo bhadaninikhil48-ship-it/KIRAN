@@ -1,69 +1,50 @@
-import { useState } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import Sidebar from './components/Sidebar'
-import Navbar from './components/Navbar'
+import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
+import Dashboard from "./pages/Dashboard";
+import SellProduce from "./pages/SellProduce";
 import MarketIntelligence from "./pages/MarketIntelligence";
-import Offers from './pages/Offers';
-import Transactions from "./pages/Transactions";
-
-import Dashboard from './pages/Dashboard'
-import SellProduce from './pages/SellProduce'
 import Opportunities from "./pages/Opportunities";
-import Buyers from './pages/Buyers';
+import Offers from "./pages/Offers";
+import Buyers from "./pages/Buyers";
+import Transactions from "./pages/Transactions";
 import TrustSupport from "./pages/TrustSupport";
 
-import './App.css'
+import "./App.css";
 
 function App() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <BrowserRouter>
-      <div className="flex min-h-screen w-full bg-gray-50">
+      <div className="min-h-screen w-full bg-gray-50 text-gray-900 flex flex-col lg:flex-row antialiased">
+        {/* Sidebar (Fixed on Desktop, Slide Drawer on Mobile) */}
+        <Sidebar
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+        />
 
-        <Sidebar />
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 lg:pl-64 transition-all">
+          <Navbar onMenuToggle={() => setMobileMenuOpen((prev) => !prev)} />
 
-        <main className="flex-1 min-w-0">
-          <Navbar />
-
-          <div className="p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
             <Routes>
-
-              <Route
-                path="/"
-                element={<Dashboard />}
-              />
-
-              <Route
-                path="/sell"
-                element={<SellProduce />}
-              />
-
-              <Route
-                path="/markets"
-                element={<MarketIntelligence />}
-              />
-
-              <Route
-                path="/opportunities"
-                element={<Opportunities />}
-              />
-
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/sell" element={<SellProduce />} />
+              <Route path="/markets" element={<MarketIntelligence />} />
+              <Route path="/opportunities" element={<Opportunities />} />
               <Route path="/offers" element={<Offers />} />
-
               <Route path="/buyers" element={<Buyers />} />
-
               <Route path="/transactions" element={<Transactions />} />
-
               <Route path="/support" element={<TrustSupport />} />
-
             </Routes>
-
-
-
-          </div>
-        </main>
-
+          </main>
+        </div>
       </div>
     </BrowserRouter>
   );
 }
-export default App
+
+export default App;
