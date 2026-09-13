@@ -1,0 +1,86 @@
+{
+  "nav": {
+  "Dashboard": "Dashboard",
+  "Sell Produce": "Sell Produce",
+  "Market Intelligence": "Market Intelligence",
+  "Best Opportunities": "Best Opportunities",
+  "Find Buyers": "Find Buyers",
+  "My Offers": "My Offers",
+  "Transactions": "Transactions",
+  "Trust & Support": "Trust & Support"
+},
+  "common": {
+    "farmer": "Farmer",
+    "loading": "Loading...",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "search": "Search"
+  },
+  "dashboard": {
+  "greeting": "Good Morning",
+  "subtitle": "Here's your real-time farm market intelligence and highest net-realization selling opportunities today.",
+
+  "prototype": "SIH 2026 Prototype",
+  "mandiSession": "Mandi Session: Active (Day Open)",
+
+  "listProduce": "List Produce",
+  "viewBestMatch": "View Best Match",
+
+  "liveMandiBenchmark": "Live Mandi Benchmark",
+  "todayTomatoPrice": "Today's Tomato Modal Price",
+  "thisWeek": "+8% This Week",
+  "minPrice": "Min Price",
+  "maxPrice": "Max Price",
+  "indoreMandiArrival": "Indore Mandi Arrival",
+
+  "activeFarmLot": "Active Farm Lot",
+  "readyProduce": "Kiran's Ready Produce",
+  "readyForDispatch": "Ready for Dispatch",
+  "quintals": "Quintals",
+  "gradeA": "Grade A (Export/Retail Quality)",
+  "updateLot": "Update Lot",
+
+  "bestOpportunity": "#1 Algorithm Recommended Opportunity",
+  "maximizedNetRealization": "Maximized Net Realization",
+  "freshMartProcurement": "FreshMart Direct Procurement",
+  "logisticsHub": "Indore Logistics Hub",
+  "estimatedLotPayout": "Estimated Lot Payout",
+  "opportunityScore": "Opportunity Score",
+  "demand": "Demand",
+  "reliability": "Reliability",
+  "payment": "Payment",
+  "distance": "Distance",
+  "high": "High",
+  "days": "Days",
+  "opportunityDisclaimer": "Opportunity score calculated via multi-factor weighting: net realization, buyer reliability rating, transit overhead, and settlement cycle (SIH demo metrics).",
+
+  "voiceAssistant": "Voice Assistant",
+  "multilingualSpeech": "Multilingual Speech Intelligence",
+  "voiceDescription": "Ask in your native dialect about mandi rates, MSP, or buyer requirements without typing.",
+  "status": "Status",
+  "youAsked": "You asked",
+  "listening": "Listening...",
+  "speakCropName": "Speak crop name like \"Tomato price\" or \"टमाटर का भाव\".",
+
+  "quickActions": "Quick Actions",
+  "directAccess": "Direct Access",
+  "sellProduce": "Sell Produce",
+  "sellProduceDescription": "List new crop or lot for buyers",
+  "marketPrices": "Market Prices",
+  "marketPricesDescription": "Live APMC modal rates & trends",
+  "findBuyers": "Find Buyers",
+  "findBuyersDescription": "Connect with verified traders",
+  "transactions": "Transactions",
+  "transactionsDescription": "Track delivery and payment status"
+},
+  "voice": {
+    "title": "Voice Support",
+    "speakQuery": "Speak your market query instead of typing.",
+    "listening": "Listening... Please speak now.",
+    "hindi": "Hindi",
+    "english": "English",
+    "marathi": "Marathi"
+  }
+}

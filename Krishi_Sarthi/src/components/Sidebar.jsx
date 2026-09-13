@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import sihLogo from "../assets/sih.png"
 import {
   LayoutDashboard,
   ShoppingBasket,
@@ -9,7 +11,6 @@ import {
   ShieldCheck,
   TrendingUp,
   X,
-  Sprout,
   Headphones,
   ChevronLeft,
   ChevronRight,
@@ -17,14 +18,14 @@ import {
 import { NavLink, useLocation } from "react-router-dom";
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/sell", label: "Sell Produce", icon: ShoppingBasket },
-  { to: "/markets", label: "Market Intelligence", icon: Store },
-  { to: "/opportunities", label: "Best Opportunities", icon: TrendingUp },
-  { to: "/buyers", label: "Find Buyers", icon: Users },
-  { to: "/offers", label: "My Offers", icon: FileText },
-  { to: "/transactions", label: "Transactions", icon: ReceiptText },
-  { to: "/support", label: "Trust & Support", icon: ShieldCheck },
+  { to: "/", key: "Dashboard", icon: LayoutDashboard },
+  { to: "/sell", key: "Sell Produce", icon: ShoppingBasket },
+  { to: "/markets", key: "Market Intelligence", icon: Store },
+  { to: "/opportunities", key: "Best Opportunities", icon: TrendingUp },
+  { to: "/buyers", key: "Find Buyers", icon: Users },
+  { to: "/offers", key: "My Offers", icon: FileText },
+  { to: "/transactions", key: "Transactions", icon: ReceiptText },
+  { to: "/support", key: "Trust & Support", icon: ShieldCheck },
 ];
 
 export function Sidebar({
@@ -33,6 +34,7 @@ export function Sidebar({
   isCollapsed: controlledIsCollapsed,
   setIsCollapsed: controlledSetIsCollapsed,
 }) {
+  const { t } = useTranslation();
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
   const location = useLocation();
 
@@ -100,17 +102,16 @@ useEffect(() => {
             }`}
           >
             <div
-              className="h-9 w-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0"
+              className="h-9 w-9 rounded-xl  text-white flex items-center justify-center shadow-xs shrink-0"
               title={isCollapsed ? "KIRAN SIH" : undefined}
             >
-              <Sprout size={20} />
+              <span >
+                 <img src={sihLogo} alt="sih-img"  className="h-10"/>
+                </span>
             </div>
             <div className={isCollapsed ? "lg:hidden" : ""}>
               <span className="text-lg font-bold text-gray-900 tracking-tight flex items-center gap-1.5 whitespace-nowrap">
                 KIRAN
-                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 tracking-wide">
-                  SIH
-                </span>
               </span>
               <p className="text-[11px] text-gray-500 font-medium whitespace-nowrap">
                 Agri-Market Intelligence
@@ -150,7 +151,7 @@ useEffect(() => {
                 key={item.to}
                 to={item.to}
                 end={item.to === "/"}
-                title={isCollapsed ? item.label : undefined}
+                title={isCollapsed ? t(`nav.${item.key}`) : undefined}
                 className={({ isActive }) =>
                   `flex items-center rounded-xl text-sm font-medium transition-colors duration-150 ${
                     isCollapsed
@@ -176,7 +177,7 @@ useEffect(() => {
                     <span
                       className={`truncate ${isCollapsed ? "lg:hidden" : ""}`}
                     >
-                      {item.label}
+                      {t(`nav.${item.key}`)}
                     </span>
                     {isActive && (
                       <span

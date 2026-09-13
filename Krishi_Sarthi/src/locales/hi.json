@@ -1,0 +1,86 @@
+{
+  "nav": {
+  "Dashboard": "डैशबोर्ड",
+  "Sell Produce": "उपज बेचें",
+  "Market Intelligence": "बाज़ार जानकारी",
+  "Best Opportunities": "बेचने के सर्वोत्तम अवसर",
+  "Find Buyers": "खरीदार खोजें",
+  "My Offers": "मेरे ऑफ़र",
+  "Transactions": "लेन-देन",
+  "Trust & Support": "विश्वास और सहायता"
+},
+  "common": {
+    "farmer": "किसान",
+    "loading": "लोड हो रहा है...",
+    "close": "बंद करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "confirm": "पुष्टि करें",
+    "search": "खोजें"
+  },
+  "dashboard": {
+  "greeting": "सुप्रभात",
+  "subtitle": "आज की वास्तविक समय की कृषि बाज़ार जानकारी और अधिकतम शुद्ध प्राप्ति के लिए बिक्री के अवसर यहाँ देखें।",
+
+  "prototype": "SIH 2026 प्रोटोटाइप",
+  "mandiSession": "मंडी सत्र: सक्रिय (दिन खुला है)",
+
+  "listProduce": "उपज सूचीबद्ध करें",
+  "viewBestMatch": "सर्वोत्तम मिलान देखें",
+
+  "liveMandiBenchmark": "लाइव मंडी बेंचमार्क",
+  "todayTomatoPrice": "आज का टमाटर मॉडल भाव",
+  "thisWeek": "इस सप्ताह +8%",
+  "minPrice": "न्यूनतम भाव",
+  "maxPrice": "अधिकतम भाव",
+  "indoreMandiArrival": "इंदौर मंडी आवक",
+
+  "activeFarmLot": "सक्रिय खेत लॉट",
+  "readyProduce": "किरण की तैयार उपज",
+  "readyForDispatch": "भेजने के लिए तैयार",
+  "quintals": "क्विंटल",
+  "gradeA": "ग्रेड A (निर्यात/रिटेल गुणवत्ता)",
+  "updateLot": "लॉट अपडेट करें",
+
+  "bestOpportunity": "#1 एल्गोरिदम द्वारा सुझाया गया अवसर",
+  "maximizedNetRealization": "अधिकतम शुद्ध प्राप्ति",
+  "freshMartProcurement": "FreshMart प्रत्यक्ष खरीद",
+  "logisticsHub": "इंदौर लॉजिस्टिक्स हब",
+  "estimatedLotPayout": "अनुमानित लॉट भुगतान",
+  "opportunityScore": "अवसर स्कोर",
+  "demand": "मांग",
+  "reliability": "विश्वसनीयता",
+  "payment": "भुगतान",
+  "distance": "दूरी",
+  "high": "उच्च",
+  "days": "दिन",
+  "opportunityDisclaimer": "अवसर स्कोर शुद्ध प्राप्ति, खरीदार विश्वसनीयता रेटिंग, परिवहन लागत और भुगतान चक्र जैसे कई कारकों के आधार पर गणना किया गया है (SIH डेमो मेट्रिक्स)।",
+
+  "voiceAssistant": "वॉइस असिस्टेंट",
+  "multilingualSpeech": "बहुभाषी वॉइस इंटेलिजेंस",
+  "voiceDescription": "टाइप किए बिना अपनी स्थानीय भाषा में मंडी भाव, MSP या खरीदार की आवश्यकताओं के बारे में पूछें।",
+  "status": "स्थिति",
+  "youAsked": "आपने पूछा",
+  "listening": "सुन रहा हूँ...",
+  "speakCropName": "\"टमाटर का भाव\" जैसे फसल का नाम बोलें।",
+
+  "quickActions": "त्वरित कार्य",
+  "directAccess": "सीधा एक्सेस",
+  "sellProduce": "उपज बेचें",
+  "sellProduceDescription": "खरीदारों के लिए नई फसल या लॉट सूचीबद्ध करें",
+  "marketPrices": "बाज़ार भाव",
+  "marketPricesDescription": "लाइव APMC मॉडल भाव और रुझान",
+  "findBuyers": "खरीदार खोजें",
+  "findBuyersDescription": "सत्यापित व्यापारियों से जुड़ें",
+  "transactions": "लेन-देन",
+  "transactionsDescription": "डिलीवरी और भुगतान की स्थिति देखें"
+},
+  "voice": {
+    "title": "वॉइस सहायता",
+    "speakQuery": "टाइप करने के बजाय अपना बाज़ार संबंधी सवाल बोलें।",
+    "listening": "सुन रहा हूँ... कृपया बोलें।",
+    "hindi": "हिंदी",
+    "english": "अंग्रेज़ी",
+    "marathi": "मराठी"
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   Menu,
@@ -48,6 +49,7 @@ const initialNotifications = [
 ];
 
 export function Navbar({ onMenuToggle }) {
+  const { i18n } = useTranslation();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const notifRef = useRef(null);
@@ -138,6 +140,16 @@ export function Navbar({ onMenuToggle }) {
 
       {/* Right Side: Quick stats, Notifications, Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
+        <select
+          value={i18n.language}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          aria-label="Select language"
+          className="text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+        >
+          <option value="en">English</option>
+          <option value="hi">हिंदी</option>
+          <option value="mr">मराठी</option>
+        </select>
         {/* Notification Menu */}
         <div className="relative" ref={notifRef}>
           <button
@@ -183,9 +195,8 @@ export function Navbar({ onMenuToggle }) {
                 {notifications.map((n) => (
                   <div
                     key={n.id}
-                    className={`p-3.5 hover:bg-gray-50/80 transition-colors flex gap-3 text-left ${
-                      n.unread ? "bg-emerald-50/30" : ""
-                    }`}
+                    className={`p-3.5 hover:bg-gray-50/80 transition-colors flex gap-3 text-left ${n.unread ? "bg-emerald-50/30" : ""
+                      }`}
                   >
                     <div className="mt-0.5 flex-shrink-0">
                       {n.type === "opportunity" && (
@@ -213,11 +224,10 @@ export function Navbar({ onMenuToggle }) {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
                         <p
-                          className={`text-xs sm:text-sm truncate ${
-                            n.unread
+                          className={`text-xs sm:text-sm truncate ${n.unread
                               ? "font-semibold text-gray-900"
                               : "font-medium text-gray-700"
-                          }`}
+                            }`}
                         >
                           {n.title}
                         </p>
@@ -256,9 +266,7 @@ export function Navbar({ onMenuToggle }) {
               <span className="text-sm font-semibold text-gray-900">
                 Kiran Patel
               </span>
-              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
-                PRO
-              </span>
+
             </div>
             <span className="text-[11px] text-gray-500 font-medium">
               Registered Farmer

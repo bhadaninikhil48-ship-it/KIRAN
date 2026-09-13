@@ -1,0 +1,86 @@
+{
+  "nav": {
+  "Dashboard": "डॅशबोर्ड",
+  "Sell Produce": "उत्पादन विक्री",
+  "Market Intelligence": "बाजार माहिती",
+  "Best Opportunities": "विक्रीच्या सर्वोत्तम संधी",
+  "Find Buyers": "खरेदीदार शोधा",
+  "My Offers": "माझ्या ऑफर्स",
+  "Transactions": "व्यवहार",
+  "Trust & Support": "विश्वास आणि मदत"
+},
+  "common": {
+    "farmer": "शेतकरी",
+    "loading": "लोड होत आहे...",
+    "close": "बंद करा",
+    "save": "जतन करा",
+    "cancel": "रद्द करा",
+    "confirm": "पुष्टी करा",
+    "search": "शोधा"
+  },
+ "dashboard": {
+  "greeting": "सुप्रभात",
+  "subtitle": "आजची रिअल-टाइम कृषी बाजार माहिती आणि जास्तीत जास्त निव्वळ मिळकतीसाठी विक्रीच्या संधी येथे पहा.",
+
+  "prototype": "SIH 2026 प्रोटोटाइप",
+  "mandiSession": "मंडी सत्र: सक्रिय (दिवस सुरू आहे)",
+
+  "listProduce": "उत्पादन सूचीबद्ध करा",
+  "viewBestMatch": "सर्वोत्तम जुळणी पहा",
+
+  "liveMandiBenchmark": "लाइव्ह मंडी बेंचमार्क",
+  "todayTomatoPrice": "आजचा टोमॅटो मॉडेल भाव",
+  "thisWeek": "या आठवड्यात +8%",
+  "minPrice": "किमान भाव",
+  "maxPrice": "कमाल भाव",
+  "indoreMandiArrival": "इंदूर मंडी आवक",
+
+  "activeFarmLot": "सक्रिय शेत लॉट",
+  "readyProduce": "किरणचे तयार उत्पादन",
+  "readyForDispatch": "पाठवण्यासाठी तयार",
+  "quintals": "क्विंटल",
+  "gradeA": "ग्रेड A (निर्यात/रिटेल गुणवत्ता)",
+  "updateLot": "लॉट अपडेट करा",
+
+  "bestOpportunity": "#1 अल्गोरिदमने शिफारस केलेली संधी",
+  "maximizedNetRealization": "जास्तीत जास्त निव्वळ मिळकत",
+  "freshMartProcurement": "FreshMart थेट खरेदी",
+  "logisticsHub": "इंदूर लॉजिस्टिक्स हब",
+  "estimatedLotPayout": "अंदाजे लॉट पेमेंट",
+  "opportunityScore": "संधी स्कोअर",
+  "demand": "मागणी",
+  "reliability": "विश्वसनीयता",
+  "payment": "पेमेंट",
+  "distance": "अंतर",
+  "high": "जास्त",
+  "days": "दिवस",
+  "opportunityDisclaimer": "संधी स्कोअर निव्वळ मिळकत, खरेदीदाराची विश्वसनीयता, वाहतूक खर्च आणि पेमेंट सायकल अशा अनेक घटकांच्या आधारे मोजला जातो (SIH डेमो मेट्रिक्स).",
+
+  "voiceAssistant": "व्हॉइस असिस्टंट",
+  "multilingualSpeech": "बहुभाषिक व्हॉइस इंटेलिजन्स",
+  "voiceDescription": "टाइप न करता तुमच्या स्थानिक भाषेत मंडी भाव, MSP किंवा खरेदीदारांच्या गरजांबद्दल विचारा.",
+  "status": "स्थिती",
+  "youAsked": "तुम्ही विचारले",
+  "listening": "ऐकत आहे...",
+  "speakCropName": "\"टोमॅटोचा भाव\" असे पिकाचे नाव बोला.",
+
+  "quickActions": "जलद कृती",
+  "directAccess": "थेट प्रवेश",
+  "sellProduce": "उत्पादन विक्री",
+  "sellProduceDescription": "खरेदीदारांसाठी नवीन पीक किंवा लॉट सूचीबद्ध करा",
+  "marketPrices": "बाजार भाव",
+  "marketPricesDescription": "लाइव्ह APMC मॉडेल भाव आणि ट्रेंड",
+  "findBuyers": "खरेदीदार शोधा",
+  "findBuyersDescription": "सत्यापित व्यापाऱ्यांशी जोडा",
+  "transactions": "व्यवहार",
+  "transactionsDescription": "डिलिव्हरी आणि पेमेंटची स्थिती पहा"
+},
+  "voice": {
+    "title": "व्हॉइस सहाय्य",
+    "speakQuery": "टाइप करण्याऐवजी तुमचा बाजाराशी संबंधित प्रश्न बोला.",
+    "listening": "ऐकत आहे... कृपया बोला.",
+    "hindi": "हिंदी",
+    "english": "इंग्रजी",
+    "marathi": "मराठी"
+  }
+}
