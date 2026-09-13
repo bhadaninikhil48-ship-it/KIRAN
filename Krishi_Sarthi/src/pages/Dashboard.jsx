@@ -156,7 +156,7 @@ export function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-emerald-800/60 text-white border-emerald-600 hover:bg-emerald-700/60"
+              className="bg-emerald-800/60 text-black border-emerald-600 hover:bg-black"
               icon={TrendingUp}
             >
               View Best Match
