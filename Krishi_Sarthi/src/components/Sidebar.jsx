@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import sihLogo from "../assets/sih.png"
+import sihLogo from "../assets/sih1.png"
 import {
   LayoutDashboard,
   ShoppingBasket,
@@ -105,8 +105,8 @@ useEffect(() => {
               className="h-9 w-9 rounded-xl  text-white flex items-center justify-center shadow-xs shrink-0"
               title={isCollapsed ? "KIRAN SIH" : undefined}
             >
-              <span >
-                 <img src={sihLogo} alt="sih-img"  className="h-10"/>
+              <span>
+                 <img src={sihLogo} alt="sih-img"  className="h-12"/>
                 </span>
             </div>
             <div className={isCollapsed ? "lg:hidden" : ""}>
