@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import sihLogo from "../assets/Sih1.png"
+import sihLogo from "../assets/Kiran.png"
 import {
   LayoutDashboard,
   ShoppingBasket,
