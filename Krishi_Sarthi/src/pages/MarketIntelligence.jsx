@@ -357,7 +357,6 @@ export function MarketIntelligence() {
           </Select>
 
 
-
           {/* Search */}
           <Input
             placeholder="Search commodity, mandi, state..."
