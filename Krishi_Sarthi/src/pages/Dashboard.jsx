@@ -567,6 +567,7 @@ export function Dashboard() {
         </Card>
 
         {/* Quick Actions */}
+
         <div ref={actionsRef} className="dashboard-card space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-gray-900">
@@ -651,6 +652,8 @@ export function Dashboard() {
       </div>
     </div>
   );
+
 }
+
 
 export default Dashboard;
