@@ -11,6 +11,8 @@ import Buyers from "./pages/Buyers";
 import Transactions from "./pages/Transactions";
 import TrustSupport from "./pages/TrustSupport";
 
+import PriceTrend from "./components/PriceTrend";
+
 import "./App.css";
 
 function App() {
@@ -30,9 +32,8 @@ function App() {
 
         {/* Main Content Area */}
         <div
-          className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${
-            isCollapsed ? "lg:pl-20" : "lg:pl-64"
-          }`}
+          className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out ${isCollapsed ? "lg:pl-20" : "lg:pl-64"
+            }`}
         >
           <Navbar onMenuToggle={() => setMobileMenuOpen((prev) => !prev)} />
 
@@ -46,6 +47,8 @@ function App() {
               <Route path="/buyers" element={<Buyers />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/support" element={<TrustSupport />} />
+
+              <Route path="/price-trend-test" element={<PriceTrend />} />
             </Routes>
           </main>
         </div>

@@ -10,7 +10,7 @@ import contractRoutes from "./routes/contractRoutes.js";
 import negotiationRoutes from "./routes/negotiationRoutes.js";
 
 import priceRoutes from "./routes/priceRoutes.js";
-
+import "./jobs/priceJob.js";
 
 
 import cors from "cors";

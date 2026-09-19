@@ -1,0 +1,142 @@
+.price-trend {
+    width: 100%;
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    color: #1f2937;
+}
+
+/* Crop + Market */
+.price-trend-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.market-name {
+    margin: 6px 0 0;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+
+/* Current Price */
+.current-price {
+    margin-top: 22px;
+    padding: 16px;
+    background: #f0fdf4;
+    border-radius: 12px;
+}
+
+.current-price p {
+    margin: 0 0 5px;
+    font-size: 15px;
+    color: #4b5563;
+}
+
+.current-price h1 {
+    margin: 0;
+    font-size: 30px;
+    color: #166534;
+}
+
+.current-price h1 span {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+
+/* 7 Day Trend */
+.trend-section {
+    margin-top: 24px;
+}
+
+.trend-section h3 {
+    margin-bottom: 14px;
+    font-size: 19px;
+}
+
+
+/* Chart */
+.chart-container {
+    width: 100%;
+    height: 280px;
+}
+
+
+/* Seedhi Baat */
+.seedhi-baat {
+    margin-top: 22px;
+    padding: 18px;
+    background: #fffbeb;
+    border-radius: 12px;
+    border-left: 5px solid #f59e0b;
+}
+
+.seedhi-baat h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+}
+
+.seedhi-baat p {
+    margin: 0 0 4px;
+    color: #4b5563;
+}
+
+.seedhi-baat strong {
+    font-size: 18px;
+    color: #166534;
+}
+
+
+/* Highest / Lowest */
+.price-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 18px;
+}
+
+.price-box {
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.price-box span {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.price-box strong {
+    font-size: 19px;
+}
+
+
+/* Mobile */
+@media (max-width: 600px) {
+
+    .price-trend {
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+    .price-trend-header h2 {
+        font-size: 21px;
+    }
+
+    .current-price h1 {
+        font-size: 26px;
+    }
+
+    .price-summary {
+        grid-template-columns: 1fr;
+    }
+
+}

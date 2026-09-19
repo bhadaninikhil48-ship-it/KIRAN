@@ -5,7 +5,12 @@ import {
   Info,
   RefreshCw,
   CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
+
+
+
+
 import { Card, CardHeader } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -15,7 +20,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
 import { animateStagger } from "../utils/animations";
 
-
+import PriceTrend from "../components/PriceTrend";
 
 
 const allMandiData = [
@@ -52,6 +57,7 @@ export function MarketIntelligence() {
   const [markets, setMarkets] = useState([]);
   const [selectedMarket, setSelectedMarket] = useState("");
   const [dataDate, setDataDate] = useState("");
+  const [selectedTrendRow, setSelectedTrendRow] = useState(null);
 
   const containerRef = useRef(null);
 
@@ -439,16 +445,19 @@ export function MarketIntelligence() {
                       </th>
 
                       <th className="py-4 px-5">
-                        Arrival
-                      </th>
-
-                      <th className="py-4 px-5">
-                        Distance
-                      </th>
-
-                      <th className="py-4 px-5">
                         Est. Net Realization
                       </th>
+
+                      {/* 
+                      <th className="py-4 px-5">
+                        Arrival
+                      </th> */}
+
+                      <th className="py-4 px-5">
+                        Price Trend
+                      </th>
+
+
 
                     </tr>
 
@@ -521,18 +530,6 @@ export function MarketIntelligence() {
                             {row.arrivalDate || "—"}
                           </td>
 
-                          {/* Arrival */}
-                          <td className="py-4 px-5 text-stone-600">
-                            {row.arrival || "—"}
-                          </td>
-
-
-                          {/* Distance */}
-                          <td className="py-4 px-5 text-stone-600">
-                            {row.distance ? `${row.distance} km` : "—"}
-                          </td>
-
-
                           {/* Net Realization */}
                           <td className="py-4 px-5">
 
@@ -545,6 +542,29 @@ export function MarketIntelligence() {
                             </span>
 
                           </td>
+
+
+                          {/* Arrival
+                          <td className="py-4 px-5 text-stone-600">
+                            {row.arrival || "—"}
+                          </td> */}
+
+                          {/* Price Trend */}
+                          <td className="py-4 px-5 text-center">
+                            <button
+                              onClick={() => setSelectedTrendRow(row)}
+                              className="inline-flex items-center justify-center
+               w-9 h-9 rounded-full
+               text-emerald-700
+               hover:bg-emerald-50
+               hover:text-emerald-800
+               transition-colors"
+                              title="7 din ka bhav dekhein"
+                            >
+                              <TrendingUp size={20} />
+                            </button>
+                          </td>
+
 
                         </tr>
 
@@ -921,8 +941,6 @@ export function MarketIntelligence() {
         </div>
 
       </Card>
-
-
       {/* Recommended Option Card */}
       <div className="stagger-box bg-gradient-to-r from-emerald-700 to-emerald-800 text-white rounded-2xl p-5 sm:p-7 shadow-sm">
 
@@ -987,8 +1005,39 @@ export function MarketIntelligence() {
 
       </div>
 
+
+      {/* Price Trend Modal */}
+      {selectedTrendRow && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          onClick={() => setSelectedTrendRow(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+
+            <button
+              onClick={() => setSelectedTrendRow(null)}
+              className="absolute right-4 top-4 z-10 w-9 h-9 rounded-full bg-white shadow-md text-gray-600 hover:bg-gray-100"
+            >
+              ✕
+            </button>
+
+            <PriceTrend
+              state={selectedTrendRow.state}
+              district={selectedTrendRow.district}
+              market={selectedTrendRow.market}
+              commodity={selectedTrendRow.commodity}
+            />
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
+
 }
 
 
