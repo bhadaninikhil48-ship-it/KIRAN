@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useTranslation } from "react-i18next";
-import sihLogo from "../assets/Kiran.png"
+import sihLogo from "../assets/Kiran.png";
 import {
   LayoutDashboard,
   ShoppingBasket,
@@ -14,18 +14,36 @@ import {
   Headphones,
   ChevronLeft,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
-const navItems = [
-  { to: "/", key: "Dashboard", icon: LayoutDashboard },
-  { to: "/sell", key: "Sell Produce", icon: ShoppingBasket },
-  { to: "/markets", key: "Market Intelligence", icon: Store },
-  { to: "/opportunities", key: "Best Opportunities", icon: TrendingUp },
-  { to: "/buyers", key: "Find Buyers", icon: Users },
-  { to: "/offers", key: "My Offers", icon: FileText },
-  { to: "/transactions", key: "Transactions", icon: ReceiptText },
-  { to: "/support", key: "Trust & Support", icon: ShieldCheck },
+const farmerNavItems = [
+  { to: "/", key: "Dashboard", label: "Farmer Dashboard", icon: LayoutDashboard },
+  { to: "/sell", key: "Sell Produce", label: "Sell Produce", icon: ShoppingBasket },
+  { to: "/markets", key: "Market Intelligence", label: "Market Intelligence", icon: Store },
+  { to: "/opportunities", key: "Best Opportunities", label: "Best Opportunities", icon: TrendingUp },
+  { to: "/buyers", key: "Find Buyers", label: "Find Buyers", icon: Users },
+  { to: "/offers", key: "My Offers", label: "My Offers", icon: FileText },
+  { to: "/transactions", key: "Transactions", label: "Transactions", icon: ReceiptText },
+  { to: "/farmer/profile", key: "Profile", label: "Farmer Profile", icon: User },
+  { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
+];
+
+const buyerNavItems = [
+  { to: "/buyer/dashboard", key: "Dashboard", label: "Buyer Dashboard", icon: LayoutDashboard },
+  { to: "/buyer/requirements", key: "Requirements", label: "Requirements", icon: ShoppingBasket },
+  { to: "/buyer/offers", key: "Offers", label: "Received Offers", icon: FileText },
+  { to: "/buyer/contracts", key: "Contracts", label: "Contracts", icon: ReceiptText },
+  { to: "/markets", key: "Market Intelligence", label: "Market Prices", icon: Store },
+  { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
+];
+
+const fpoNavItems = [
+  { to: "/fpo/dashboard", key: "Dashboard", label: "FPO Dashboard", icon: LayoutDashboard },
+  { to: "/markets", key: "Market Intelligence", label: "Market Prices", icon: Store },
+  { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
 ];
 
 export function Sidebar({
@@ -35,8 +53,16 @@ export function Sidebar({
   setIsCollapsed: controlledSetIsCollapsed,
 }) {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
   const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
   const location = useLocation();
+
+  const navItems =
+    user?.role === "buyer"
+      ? buyerNavItems
+      : user?.role === "fpo"
+      ? fpoNavItems
+      : farmerNavItems;
 
   const isCollapsed =
     controlledIsCollapsed !== undefined
@@ -151,7 +177,7 @@ useEffect(() => {
                 key={item.to}
                 to={item.to}
                 end={item.to === "/"}
-                title={isCollapsed ? t(`nav.${item.key}`) : undefined}
+                title={isCollapsed ? (t(`nav.${item.key}`) !== `nav.${item.key}` ? t(`nav.${item.key}`) : item.label) : undefined}
                 className={({ isActive }) =>
                   `flex items-center rounded-xl text-sm font-medium transition-colors duration-150 ${
                     isCollapsed
@@ -177,7 +203,7 @@ useEffect(() => {
                     <span
                       className={`truncate ${isCollapsed ? "lg:hidden" : ""}`}
                     >
-                      {t(`nav.${item.key}`)}
+                      {t(`nav.${item.key}`) !== `nav.${item.key}` ? t(`nav.${item.key}`) : item.label}
                     </span>
                     {isActive && (
                       <span

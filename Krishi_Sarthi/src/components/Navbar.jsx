@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
@@ -8,10 +8,13 @@ import {
   Truck,
   TrendingUp,
   MapPin,
+  LogOut,
+  User,
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import gsap from "gsap";
 import { isReducedMotion } from "../utils/animations";
+import { AuthContext } from "../context/AuthContext";
 
 const initialNotifications = [
   {
@@ -50,6 +53,8 @@ const initialNotifications = [
 
 export function Navbar({ onMenuToggle }) {
   const { i18n } = useTranslation();
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
   const notifRef = useRef(null);
@@ -72,7 +77,21 @@ export function Navbar({ onMenuToggle }) {
         return "Transaction Tracking";
       case "/support":
         return "Trust & Dispute Support";
+      case "/farmer/profile":
+        return "Farmer Profile";
+      case "/buyer/dashboard":
+        return "Buyer Dashboard";
+      case "/buyer/requirements":
+        return "Buyer Procurement Requirements";
+      case "/buyer/offers":
+        return "Incoming Farmer Offers";
+      case "/buyer/contracts":
+        return "Buyer Contracts";
+      case "/fpo/dashboard":
+        return "FPO Cluster Dashboard";
       default:
+        if (user?.role === "buyer") return "Buyer Dashboard";
+        if (user?.role === "fpo") return "FPO Dashboard";
         return "Farmer Dashboard";
     }
   };
@@ -256,22 +275,52 @@ export function Navbar({ onMenuToggle }) {
         </div>
 
         {/* User Profile Capsule */}
-        <div className="flex items-center gap-2 pl-2 sm:border-l sm:border-gray-200">
-          <div className="h-9 w-9 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs ring-2 ring-emerald-500/20">
-            KP
-          </div>
-
-          <div className="hidden sm:block text-left">
-            <div className="flex items-center gap-1.5 leading-none">
-              <span className="text-sm font-semibold text-gray-900">
-                Kiran Patel
-              </span>
-
+        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:border-l sm:border-gray-200">
+          <Link
+            to={user?.role === "farmer" ? "/farmer/profile" : "#"}
+            className="flex items-center gap-2 group cursor-pointer"
+            title={user?.role === "farmer" ? "Manage Profile" : undefined}
+          >
+            <div className="h-9 w-9 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs ring-2 ring-emerald-500/20 group-hover:bg-emerald-700 transition-colors">
+              {user?.name
+                ? user.name
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)
+                : "U"}
             </div>
-            <span className="text-[11px] text-gray-500 font-medium">
-              Registered Farmer
-            </span>
-          </div>
+
+            <div className="hidden sm:block text-left">
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="text-sm font-semibold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                  {user?.name || "User"}
+                </span>
+              </div>
+              <span className="text-[11px] text-gray-500 font-medium capitalize">
+                {user?.role === "buyer"
+                  ? "Verified Buyer"
+                  : user?.role === "fpo"
+                  ? "FPO Coordinator"
+                  : "Registered Farmer"}
+              </span>
+            </div>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+            title="Sign Out"
+            aria-label="Sign Out"
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </header>

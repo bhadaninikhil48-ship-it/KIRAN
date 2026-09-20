@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
@@ -14,15 +14,19 @@ import {
   Sparkles,
   Volume2,
   ChevronRight,
+  Package,
 } from "lucide-react";
 
 import { animateStagger, animateCounter } from "../utils/animations";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
+import { AuthContext } from "../context/AuthContext";
+import { api } from "../services/api";
 
 export function Dashboard() {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
 
   const [isListening, setIsListening] = useState(false);
   const [language, setLanguage] = useState("hi-IN");
@@ -30,26 +34,101 @@ export function Dashboard() {
   const [voiceTranscript, setVoiceTranscript] = useState("");
   const [voiceResponse, setVoiceResponse] = useState("");
 
+  // Backend data states
+  const [marketPrices, setMarketPrices] = useState([]);
+  const [activeLot, setActiveLot] = useState(null);
+  const [produceStats, setProduceStats] = useState({ total: 0, available: 0, sold: 0 });
+  const [bestOpp, setBestOpp] = useState(null);
+  const [loadingData, setLoadingData] = useState(true);
+
   const scoreRef = useRef(null);
   const cardsContainerRef = useRef(null);
   const actionsRef = useRef(null);
 
+  // Load real backend data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoadingData(true);
+
+        // 1. Fetch Market Prices
+        const priceRes = await api.get("/api/market/prices");
+        const prices = priceRes?.prices || [];
+        setMarketPrices(prices);
+
+        // 2. Fetch Farmer Produce
+        const prodRes = await api.get("/api/produce/my");
+        const produceList = prodRes?.produce || [];
+        if (produceList.length > 0) {
+          setActiveLot(produceList[0]);
+        }
+
+        // 3. Fetch Produce Stats
+        const statsRes = await api.get("/api/produce/stats");
+        if (statsRes) {
+          setProduceStats({
+            total: statsRes.total || 0,
+            available: statsRes.available || 0,
+            sold: statsRes.sold || 0,
+          });
+        }
+
+        // 4. Fetch Best Opportunities (Open buyer requirements or highest market rate)
+        const reqRes = await api.get("/api/buyer/requirements/open");
+        const reqs = reqRes?.requirements || [];
+        if (reqs.length > 0) {
+          setBestOpp({
+            type: "buyer",
+            title: reqs[0].buyer_name || "Institutional Procurement Hub",
+            crop: reqs[0].crop_name,
+            grade: reqs[0].quality_grade || "Grade A",
+            price: Number(reqs[0].max_price || 0),
+            quantity: Number(reqs[0].quantity),
+            unit: reqs[0].unit,
+            location: reqs[0].location || "Regional Hub",
+            score: 92,
+            demand: "High",
+            deliveryDate: reqs[0].required_by,
+          });
+        } else if (prices.length > 0) {
+          setBestOpp({
+            type: "market",
+            title: `${prices[0].market_name} Auction`,
+            crop: prices[0].crop_name,
+            grade: "Mandi Standard",
+            price: Number(prices[0].modal_price),
+            quantity: Number(prices[0].arrival_quantity || 100),
+            unit: prices[0].arrival_unit || "quintal",
+            location: `${prices[0].district || ""}, ${prices[0].state || ""}`,
+            score: 88,
+            demand: "Active Session",
+            deliveryDate: prices[0].price_date,
+          });
+        }
+      } catch (err) {
+        console.error("Dashboard data fetch error:", err);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
   // GSAP entrance and score animation
   useEffect(() => {
     if (cardsContainerRef.current) {
-      const cards =
-        cardsContainerRef.current.querySelectorAll(".dashboard-card");
-
+      const cards = cardsContainerRef.current.querySelectorAll(".dashboard-card");
       animateStagger(cards, {
         delay: 0.1,
         duration: 0.45,
       });
     }
 
-    if (scoreRef.current) {
-      animateCounter(scoreRef.current, 91, 1.2);
+    if (scoreRef.current && bestOpp) {
+      animateCounter(scoreRef.current, bestOpp.score || 90, 1.2);
     }
-  }, []);
+  }, [loadingData, bestOpp]);
 
   const startVoice = () => {
     const SpeechRecognition =
@@ -81,44 +160,25 @@ export function Dashboard() {
 
     recognition.onresult = (event) => {
       const text = event.results[0][0].transcript.toLowerCase();
-
       setVoiceTranscript(event.results[0][0].transcript);
       setVoiceStatus("Response Ready");
 
-      let message;
+      // Match against real market prices from DB
+      let matchedPrice = null;
+      for (const p of marketPrices) {
+        if (text.includes(p.crop_name.toLowerCase())) {
+          matchedPrice = p;
+          break;
+        }
+      }
 
-      if (
-        text.includes("tomato") ||
-        text.includes("टमाटर") ||
-        text.includes("tamatar")
-      ) {
-        message =
-          "Today's Tomato modal price is ₹2,750 per quintal with High Demand in Indore.";
-      } else if (
-        text.includes("onion") ||
-        text.includes("प्याज") ||
-        text.includes("pyaz")
-      ) {
-        message =
-          "Today's Onion modal price is ₹1,850 per quintal in Nashik APMC.";
-      } else if (
-        text.includes("potato") ||
-        text.includes("आलू") ||
-        text.includes("aloo")
-      ) {
-        message =
-          "Today's Potato modal price is ₹1,420 per quintal in Agra APMC.";
-      } else if (
-        text.includes("wheat") ||
-        text.includes("गेहूं") ||
-        text.includes("gehun")
-      ) {
-        message = "Today's Wheat MSP benchmark is ₹2,275 per quintal.";
+      let message;
+      if (matchedPrice) {
+        message = `Today's ${matchedPrice.crop_name} modal price is ₹${Number(matchedPrice.modal_price).toLocaleString()} per ${matchedPrice.arrival_unit || "quintal"} in ${matchedPrice.market_name}.`;
+      } else if (marketPrices.length > 0) {
+        message = `Available live mandi prices in ${marketPrices[0].market_name}: ${marketPrices[0].crop_name} at ₹${Number(marketPrices[0].modal_price).toLocaleString()}/quintal.`;
       } else {
-        message =
-          'I heard: "' +
-          event.results[0][0].transcript +
-          '". For demo, try asking about Tomato or Mandi prices.';
+        message = `I heard: "${event.results[0][0].transcript}". Please ask for Mandi rates of Tomato, Potato, Onion, or Wheat.`;
       }
 
       setVoiceResponse(message);
@@ -133,21 +193,15 @@ export function Dashboard() {
     recognition.onerror = (e) => {
       setVoiceStatus("Ready");
       setIsListening(false);
-
       if (e.error !== "no-speech") {
-        setVoiceResponse(
-          "Could not understand your voice. Please try again."
-        );
+        setVoiceResponse("Could not understand your voice. Please try again.");
       }
     };
 
     recognition.onend = () => {
       setIsListening(false);
-
       setTimeout(() => {
-        setVoiceStatus((prev) =>
-          prev === "Response Ready" ? prev : "Ready"
-        );
+        setVoiceStatus((prev) => (prev === "Response Ready" ? prev : "Ready"));
       }, 800);
     };
 
@@ -160,6 +214,8 @@ export function Dashboard() {
     }
   };
 
+  const topMarketPrice = marketPrices[0];
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Greeting Section */}
@@ -167,7 +223,7 @@ export function Dashboard() {
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
-              {t("dashboard.prototype")}
+              KIRAN Live Exchange
             </span>
 
             <span className="text-xs text-emerald-200">
@@ -176,7 +232,7 @@ export function Dashboard() {
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-            {t("dashboard.greeting")}, Kiran Patel
+            {t("dashboard.greeting")}, {user?.name || "Farmer"}
           </h1>
 
           <p className="text-emerald-100/90 text-sm max-w-xl">
@@ -200,7 +256,7 @@ export function Dashboard() {
             <Button
               variant="outline"
               size="sm"
-              className="bg-emerald-800/60 text-black border-emerald-600 hover:bg-black"
+              className="bg-emerald-800/60 text-white border-emerald-600 hover:bg-emerald-700"
               icon={TrendingUp}
             >
               {t("dashboard.viewBestMatch")}
@@ -209,11 +265,56 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Produce Statistics Summary Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 border-gray-200/90 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Total Lots Listed
+            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mt-0.5">
+              {produceStats.total}
+            </h3>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center">
+            <Package size={20} />
+          </div>
+        </Card>
+
+        <Card className="p-4 border-gray-200/90 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Active Available Lots
+            </p>
+            <h3 className="text-2xl font-bold text-emerald-600 mt-0.5">
+              {produceStats.available}
+            </h3>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <ShoppingBasket size={20} />
+          </div>
+        </Card>
+
+        <Card className="p-4 border-gray-200/90 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Completed Deals / Sold
+            </p>
+            <h3 className="text-2xl font-bold text-blue-600 mt-0.5">
+              {produceStats.sold}
+            </h3>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+            <ReceiptText size={20} />
+          </div>
+        </Card>
+      </div>
+
       {/* Grid container */}
       <div ref={cardsContainerRef} className="space-y-6">
         {/* Market Intelligence & Farmer Produce */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-          {/* Today's Market Price */}
+          {/* Today's Market Price Card */}
           <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300">
             <div className="flex items-start justify-between">
               <div>
@@ -222,22 +323,26 @@ export function Dashboard() {
                 </p>
 
                 <h3 className="text-lg font-bold text-gray-900 mt-1">
-                  {t("dashboard.todayTomatoPrice")}
+                  {topMarketPrice
+                    ? `${topMarketPrice.crop_name} (${topMarketPrice.market_name})`
+                    : t("dashboard.todayTomatoPrice")}
                 </h3>
               </div>
 
               <Badge variant="emerald" dot>
-                {t("dashboard.thisWeek")}
+                {topMarketPrice?.district || "Live Feed"}
               </Badge>
             </div>
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
-                ₹2,750
+                {topMarketPrice
+                  ? `₹${Number(topMarketPrice.modal_price).toLocaleString()}`
+                  : "₹2,750"}
               </span>
 
               <span className="text-sm font-medium text-gray-500">
-                / quintal
+                / {topMarketPrice?.arrival_unit || "quintal"}
               </span>
             </div>
 
@@ -247,7 +352,9 @@ export function Dashboard() {
                   {t("dashboard.minPrice")}
                 </span>
                 <span className="font-semibold text-gray-700">
-                  ₹2,400/q
+                  {topMarketPrice?.min_price
+                    ? `₹${Number(topMarketPrice.min_price).toLocaleString()}/q`
+                    : "—"}
                 </span>
               </div>
 
@@ -256,22 +363,26 @@ export function Dashboard() {
                   {t("dashboard.maxPrice")}
                 </span>
                 <span className="font-semibold text-gray-700">
-                  ₹2,950/q
+                  {topMarketPrice?.max_price
+                    ? `₹${Number(topMarketPrice.max_price).toLocaleString()}/q`
+                    : "—"}
                 </span>
               </div>
 
               <div>
                 <span className="text-gray-400 block">
-                  {t("dashboard.indoreMandiArrival")}
+                  Arrival Volume
                 </span>
                 <span className="font-semibold text-gray-700">
-                  420 Tonnes
+                  {topMarketPrice?.arrival_quantity
+                    ? `${Number(topMarketPrice.arrival_quantity)} ${topMarketPrice.arrival_unit || "q"}`
+                    : "Active"}
                 </span>
               </div>
             </div>
           </Card>
 
-          {/* Your Produce Lot */}
+          {/* Your Produce Lot Card */}
           <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300">
             <div className="flex items-start justify-between">
               <div>
@@ -280,41 +391,49 @@ export function Dashboard() {
                 </p>
 
                 <h3 className="text-lg font-bold text-gray-900 mt-1">
-                  {t("dashboard.readyProduce")}
+                  {activeLot ? `${activeLot.crop_name} Lot` : "My Farm Produce"}
                 </h3>
               </div>
 
-              <Badge variant="green">
-                {t("dashboard.readyForDispatch")}
-              </Badge>
+              {activeLot ? (
+                <Badge variant="green">{activeLot.status}</Badge>
+              ) : (
+                <Badge variant="gray">No Active Lot</Badge>
+              )}
             </div>
 
             <div className="mt-4 flex items-baseline gap-2">
               <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700 tracking-tight">
-                800 kg
+                {activeLot
+                  ? `${activeLot.quantity} ${activeLot.unit}`
+                  : "0 kg"}
               </span>
 
-              <span className="text-sm font-medium text-gray-500">
-                (8 {t("dashboard.quintals")})
-              </span>
+              {activeLot && activeLot.unit === "kg" && (
+                <span className="text-sm font-medium text-gray-500">
+                  ({(Number(activeLot.quantity) / 100).toFixed(1)} Quintals)
+                </span>
+              )}
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
               <div className="flex items-center gap-1.5 font-medium text-gray-700">
-                <span>🍅 Tomato</span>
-
-                <span className="text-gray-300">•</span>
-
-                <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded">
-                  {t("dashboard.gradeA")}
-                </span>
+                <span>{activeLot?.crop_name ? `🌾 ${activeLot.crop_name}` : "List your harvest"}</span>
+                {activeLot?.quality_grade && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded">
+                      {activeLot.quality_grade}
+                    </span>
+                  </>
+                )}
               </div>
 
               <Link
                 to="/sell"
                 className="text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-0.5 hover:underline"
               >
-                {t("dashboard.updateLot")}
+                {activeLot ? t("dashboard.updateLot") : "+ List Harvest"}
                 <ChevronRight size={14} />
               </Link>
             </div>
@@ -322,125 +441,115 @@ export function Dashboard() {
         </div>
 
         {/* Best Selling Opportunity */}
-        <div className="dashboard-card">
-          <Link
-            to="/opportunities"
-            className="block group bg-gradient-to-br from-emerald-50/70 via-white to-white border-2 border-emerald-500/70 hover:border-emerald-600 rounded-2xl p-5 sm:p-7 shadow-xs hover:shadow-md transition-all duration-200"
-          >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                    <Sparkles size={12} className="text-emerald-600" />
-                    {t("dashboard.bestOpportunity")}
-                  </span>
+        {bestOpp && (
+          <div className="dashboard-card">
+            <Link
+              to="/opportunities"
+              className="block group bg-gradient-to-br from-emerald-50/70 via-white to-white border-2 border-emerald-500/70 hover:border-emerald-600 rounded-2xl p-5 sm:p-7 shadow-xs hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                      <Sparkles size={12} className="text-emerald-600" />
+                      {t("dashboard.bestOpportunity")}
+                    </span>
 
-                  <span className="text-xs text-gray-500 hidden sm:inline">
-                    {t("dashboard.maximizedNetRealization")}
-                  </span>
+                    <span className="text-xs text-gray-500 hidden sm:inline">
+                      {t("dashboard.maximizedNetRealization")}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-baseline gap-3">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                      {bestOpp.title}
+                    </h2>
+
+                    <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                      <MapPin size={14} className="text-gray-400" />
+                      {bestOpp.location}
+                    </span>
+                  </div>
+
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700">
+                      ₹{bestOpp.price.toLocaleString()}
+                    </span>
+
+                    <span className="text-sm font-medium text-gray-500">
+                      / {bestOpp.unit || "quintal"}
+                    </span>
+
+                    {bestOpp.price && bestOpp.quantity && (
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded ml-1">
+                        Est. Payout: ₹{(bestOpp.price * (bestOpp.unit === "quintal" ? bestOpp.quantity : bestOpp.quantity / 100)).toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-baseline gap-3">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {t("dashboard.freshMartProcurement")}
-                  </h2>
+                {/* Opportunity Details */}
+                <div className="flex items-center gap-4 sm:gap-6 bg-white p-4 rounded-xl border border-emerald-200 shadow-2xs">
+                  <div className="text-right">
+                    <div className="flex items-baseline justify-end gap-1">
+                      <span
+                        ref={scoreRef}
+                        className="text-3xl sm:text-4xl font-black text-emerald-600"
+                      >
+                        {bestOpp.score}
+                      </span>
 
-                  <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
-                    <MapPin size={14} className="text-gray-400" />
-                    {t("dashboard.logisticsHub")} (32 km)
-                  </span>
-                </div>
+                      <span className="text-sm font-bold text-gray-400">
+                        /100
+                      </span>
+                    </div>
 
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700">
-                    ₹2,520
-                  </span>
+                    <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      {t("dashboard.opportunityScore")}
+                    </p>
+                  </div>
 
-                  <span className="text-sm font-medium text-gray-500">
-                    / quintal
-                  </span>
+                  <div className="h-10 w-px bg-gray-200 hidden sm:block" />
 
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded ml-1">
-                    {t("dashboard.estimatedLotPayout")}: ₹20,160
-                  </span>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div>
+                      <span className="text-gray-400 block">Crop</span>
+                      <span className="font-bold text-gray-900">{bestOpp.crop}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block">Grade</span>
+                      <span className="font-bold text-emerald-700">{bestOpp.grade}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block">Volume</span>
+                      <span className="font-bold text-gray-800">{bestOpp.quantity} {bestOpp.unit}</span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 block">Delivery</span>
+                      <span className="font-bold text-gray-800">
+                        {bestOpp.deliveryDate ? String(bestOpp.deliveryDate).split("T")[0] : "Prompt"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 group-hover:translate-x-1 transition-transform">
+                    <ArrowUpRight size={22} />
+                  </div>
                 </div>
               </div>
 
-              {/* Opportunity Score */}
-              <div className="flex items-center gap-4 sm:gap-6 bg-white p-4 rounded-xl border border-emerald-200 shadow-2xs">
-                <div className="text-right">
-                  <div className="flex items-baseline justify-end gap-1">
-                    <span
-                      ref={scoreRef}
-                      className="text-3xl sm:text-4xl font-black text-emerald-600"
-                    >
-                      91
-                    </span>
+              <p className="text-[11px] text-gray-400 mt-3 pt-3 border-t border-emerald-100 flex items-center gap-1.5">
+                <ShieldCheck size={13} className="text-emerald-600" />
+                {t("dashboard.opportunityDisclaimer")}
+              </p>
+            </Link>
+          </div>
+        )}
 
-                    <span className="text-sm font-bold text-gray-400">
-                      /100
-                    </span>
-                  </div>
-
-                  <p className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    {t("dashboard.opportunityScore")}
-                  </p>
-                </div>
-
-                <div className="h-10 w-px bg-gray-200 hidden sm:block" />
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <div>
-                    <span className="text-gray-400 block">
-                      {t("dashboard.demand")}
-                    </span>
-                    <span className="font-bold text-emerald-700">
-                      {t("dashboard.high")}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-400 block">
-                      {t("dashboard.reliability")}
-                    </span>
-                    <span className="font-bold text-emerald-700">
-                      94%
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-400 block">
-                      {t("dashboard.payment")}
-                    </span>
-                    <span className="font-bold text-gray-800">
-                      3 {t("dashboard.days")}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-gray-400 block">
-                      {t("dashboard.distance")}
-                    </span>
-                    <span className="font-bold text-gray-800">
-                      32 km
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-2 rounded-lg bg-emerald-50 text-emerald-600 group-hover:translate-x-1 transition-transform">
-                  <ArrowUpRight size={22} />
-                </div>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-gray-400 mt-3 pt-3 border-t border-emerald-100 flex items-center gap-1.5">
-              <ShieldCheck size={13} className="text-emerald-600" />
-              {t("dashboard.opportunityDisclaimer")}
-            </p>
-          </Link>
-        </div>
-
-        {/* Voice Support */}
+        {/* Multilingual Voice Assistant */}
         <Card className="dashboard-card border-gray-200/90 overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
@@ -509,7 +618,7 @@ export function Dashboard() {
                     ? "Listening active"
                     : "Start voice assistant"
                 }
-                className={`relative p-3.5 rounded-full text-white transition-all shadow-sm active:scale-95 ${
+                className={`relative p-3.5 rounded-full text-white transition-all shadow-sm active:scale-95 cursor-pointer ${
                   isListening
                     ? "bg-red-600 hover:bg-red-700 ring-4 ring-red-200 animate-pulse"
                     : "bg-emerald-600 hover:bg-emerald-700"
@@ -558,7 +667,6 @@ export function Dashboard() {
               {isListening && (
                 <div className="flex items-center gap-2 text-red-600 font-medium">
                   <span className="h-2 w-2 rounded-full bg-red-500 animate-ping"></span>
-
                   {t("dashboard.speakCropName")}
                 </div>
               )}
@@ -567,7 +675,6 @@ export function Dashboard() {
         </Card>
 
         {/* Quick Actions */}
-
         <div ref={actionsRef} className="dashboard-card space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-base sm:text-lg font-bold text-gray-900">
@@ -652,8 +759,6 @@ export function Dashboard() {
       </div>
     </div>
   );
-
 }
-
 
 export default Dashboard;

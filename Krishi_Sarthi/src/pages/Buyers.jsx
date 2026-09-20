@@ -1,171 +1,148 @@
 import { useState, useMemo, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Search,
-  ShieldCheck,
   CheckCircle2,
   AlertTriangle,
   MapPin,
-  Sparkles,
+  Calendar,
+  Package,
+  ArrowRight,
+  Send,
+  Users,
 } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import { Modal } from "../components/ui/Modal";
+import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
+import { LoadingState } from "../components/ui/LoadingState";
 import { animateStagger } from "../utils/animations";
-
-const initialBuyers = [
-  {
-    id: 1,
-    name: "FreshMart Retail Chains",
-    crop: "Tomato",
-    location: "Indore Logistics Hub",
-    state: "Madhya Pradesh",
-    distance: 32,
-    demand: "High",
-    quantityRequired: "5,000 kg",
-    offeredPrice: 2520,
-    mspBenchmark: 2500,
-    reliability: 94,
-    paymentSpeed: "3 Days",
-    score: 91,
-    verified: true,
-    topMatch: true,
-  },
-  {
-    id: 2,
-    name: "Malwa Organics & Exports",
-    crop: "Tomato",
-    location: "Ujjain Road Cluster",
-    state: "Madhya Pradesh",
-    distance: 48,
-    demand: "High",
-    quantityRequired: "10,000 kg",
-    offeredPrice: 2480,
-    mspBenchmark: 2500,
-    reliability: 91,
-    paymentSpeed: "2 Days (Direct UPI)",
-    score: 88,
-    verified: true,
-    topMatch: false,
-  },
-  {
-    id: 3,
-    name: "Indore Wholesale APMC Commission Agent",
-    crop: "Tomato",
-    location: "Choithram Mandi, Indore",
-    state: "Madhya Pradesh",
-    distance: 18,
-    demand: "Medium",
-    quantityRequired: "3,000 kg",
-    offeredPrice: 2440,
-    mspBenchmark: 2500,
-    reliability: 88,
-    paymentSpeed: "Immediate Cash",
-    score: 84,
-    verified: true,
-    topMatch: false,
-  },
-  {
-    id: 4,
-    name: "Reliance Retail Hub",
-    crop: "Tomato",
-    location: "Pithampur Industrial Corridor",
-    state: "Madhya Pradesh",
-    distance: 42,
-    demand: "Medium",
-    quantityRequired: "15,000 kg",
-    offeredPrice: 2420,
-    mspBenchmark: 2500,
-    reliability: 89,
-    paymentSpeed: "7 Days",
-    score: 80,
-    verified: true,
-    topMatch: false,
-  },
-  {
-    id: 5,
-    name: "Local Mandi Trader (Bhopal)",
-    crop: "Tomato",
-    location: "Karond Mandi, Bhopal",
-    state: "Madhya Pradesh",
-    distance: 195,
-    demand: "Low",
-    quantityRequired: "2,000 kg",
-    offeredPrice: 2280,
-    mspBenchmark: 2500,
-    reliability: 68,
-    paymentSpeed: "7–10 Days",
-    score: 64,
-    verified: false,
-    topMatch: false,
-  },
-];
+import { api } from "../services/api";
 
 export function Buyers() {
+  const [buyers, setBuyers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [demandFilter, setDemandFilter] = useState("All");
-  const [reliabilityFilter, setReliabilityFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("scoreDesc");
+  const [cropFilter, setCropFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("priceDesc");
 
+  // Offer modal states
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [offerModalOpen, setOfferModalOpen] = useState(false);
-  const [offerQuantity, setOfferQuantity] = useState(800);
-  const [offerPrice, setOfferPrice] = useState(2520);
-  const [deliveryDate, setDeliveryDate] = useState("2026-09-16");
+  const [offerQuantity, setOfferQuantity] = useState("");
+  const [offerPrice, setOfferPrice] = useState("");
+  const [offerMessage, setOfferMessage] = useState("");
+  const [submittingOffer, setSubmittingOffer] = useState(false);
+  const [offerError, setOfferError] = useState("");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [createdOfferData, setCreatedOfferData] = useState(null);
 
   const containerRef = useRef(null);
 
+  // Fetch real open buyer requirements
+  const fetchBuyerRequirements = async () => {
+    try {
+      setLoading(true);
+      const data = await api.get("/api/buyer/requirements/open");
+      setBuyers(data?.requirements || []);
+    } catch (err) {
+      console.error("Failed to load buyer requirements:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (containerRef.current) {
+    fetchBuyerRequirements();
+  }, []);
+
+  useEffect(() => {
+    if (containerRef.current && !loading) {
       animateStagger(containerRef.current.querySelectorAll(".buyer-card-anim"), {
         delay: 0.05,
       });
     }
-  }, []);
+  }, [loading, searchQuery, cropFilter, sortBy]);
+
+  const uniqueCrops = [
+    "All",
+    ...new Set(buyers.map((b) => b.crop_name).filter(Boolean)),
+  ];
 
   const filteredBuyers = useMemo(() => {
-    return initialBuyers
+    return buyers
       .filter((b) => {
+        const query = searchQuery.toLowerCase();
         const matchesSearch =
-          b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          b.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          b.crop.toLowerCase().includes(searchQuery.toLowerCase());
+          b.buyer_name?.toLowerCase().includes(query) ||
+          b.crop_name?.toLowerCase().includes(query) ||
+          b.location?.toLowerCase().includes(query);
 
-        const matchesDemand =
-          demandFilter === "All" || b.demand.toLowerCase() === demandFilter.toLowerCase();
+        const matchesCrop =
+          cropFilter === "All" ||
+          b.crop_name?.toLowerCase() === cropFilter.toLowerCase();
 
-        const matchesRel =
-          reliabilityFilter === "All" ||
-          (reliabilityFilter === "90" && b.reliability >= 90) ||
-          (reliabilityFilter === "80" && b.reliability >= 80);
-
-        return matchesSearch && matchesDemand && matchesRel;
+        return matchesSearch && matchesCrop;
       })
       .sort((a, b) => {
-        if (sortBy === "scoreDesc") return b.score - a.score;
-        if (sortBy === "priceDesc") return b.offeredPrice - a.offeredPrice;
-        if (sortBy === "distanceAsc") return a.distance - b.distance;
-        if (sortBy === "relDesc") return b.reliability - a.reliability;
+        if (sortBy === "priceDesc") {
+          return Number(b.max_price || 0) - Number(a.max_price || 0);
+        }
+        if (sortBy === "priceAsc") {
+          return Number(a.max_price || 0) - Number(b.max_price || 0);
+        }
+        if (sortBy === "qtyDesc") {
+          return Number(b.quantity || 0) - Number(a.quantity || 0);
+        }
         return 0;
       });
-  }, [searchQuery, demandFilter, reliabilityFilter, sortBy]);
+  }, [buyers, searchQuery, cropFilter, sortBy]);
 
-  const handleOpenOffer = (buyer) => {
-    setSelectedBuyer(buyer);
-    setOfferPrice(buyer.offeredPrice);
+  const handleOpenOffer = (buyerReq) => {
+    setSelectedBuyer(buyerReq);
+    setOfferPrice(buyerReq.max_price || "");
+    setOfferQuantity(buyerReq.quantity || "");
+    setOfferMessage(`I have Grade A ${buyerReq.crop_name} ready for prompt dispatch.`);
+    setOfferError("");
     setOfferModalOpen(true);
   };
 
-  const handleSendOfferSubmit = (e) => {
+  const handleSendOfferSubmit = async (e) => {
     e.preventDefault();
-    setOfferModalOpen(false);
-    setSuccessModalOpen(true);
-  };
+    if (!selectedBuyer) return;
 
-  const mspDifference = offerPrice - (selectedBuyer?.mspBenchmark || 2500);
+    setSubmittingOffer(true);
+    setOfferError("");
+
+    try {
+      const payload = {
+        requirement_id: selectedBuyer.id,
+        offer_price: Number(offerPrice),
+        quantity: Number(offerQuantity),
+        message: offerMessage,
+      };
+
+      const res = await api.post("/api/offers", payload);
+      setCreatedOfferData({
+        offerId: res.offerId,
+        buyerName: selectedBuyer.buyer_name || "Institutional Buyer",
+        crop: selectedBuyer.crop_name,
+        price: offerPrice,
+        quantity: offerQuantity,
+        unit: selectedBuyer.unit,
+      });
+
+      setOfferModalOpen(false);
+      setSuccessModalOpen(true);
+    } catch (err) {
+      setOfferError(err.message || "Failed to submit commercial offer to buyer");
+    } finally {
+      setSubmittingOffer(false);
+    }
+  };
 
   return (
     <div ref={containerRef} className="space-y-6 sm:space-y-8">
@@ -173,302 +150,262 @@ export function Buyers() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-            Buyer Discovery & Matching
+            Find & Match Buyers
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-gray-500">
-            Verified institutional buyers, retail hubs, and exporters ranked by KrishiSarthi Opportunity Score.
+            Discover verified open procurement requirements posted by institutional buyers and wholesale traders.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            5 Active Direct Procurement Calls
-          </span>
+          <Badge variant="emerald">
+            {buyers.length} Active Direct Requirements
+          </Badge>
         </div>
       </div>
 
       {/* Search & Filter Ribbon */}
       <Card className="p-3 sm:p-4 border-gray-200/90">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           <Input
-            placeholder="Search buyers, clusters, crops..."
+            placeholder="Search buyer name, crop, or district..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             icon={Search}
           />
 
           <Select
-            value={demandFilter}
-            onChange={(e) => setDemandFilter(e.target.value)}
+            label=""
+            value={cropFilter}
+            onChange={(e) => setCropFilter(e.target.value)}
           >
-            <option value="All">All Demand Levels</option>
-            <option value="High">High Demand Only</option>
-            <option value="Medium">Medium Demand</option>
-            <option value="Low">Low Demand</option>
+            {uniqueCrops.map((c) => (
+              <option key={c} value={c}>
+                {c === "All" ? "Filter by All Crops" : `Crop: ${c}`}
+              </option>
+            ))}
           </Select>
 
           <Select
-            value={reliabilityFilter}
-            onChange={(e) => setReliabilityFilter(e.target.value)}
-          >
-            <option value="All">All Reliability Ratings</option>
-            <option value="90">90%+ Verified Rating</option>
-            <option value="80">80%+ Verified Rating</option>
-          </Select>
-
-          <Select
+            label=""
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="scoreDesc">Sort: Opportunity Score</option>
-            <option value="priceDesc">Sort: Highest Offered Price</option>
-            <option value="distanceAsc">Sort: Nearest Distance</option>
-            <option value="relDesc">Sort: Highest Reliability</option>
+            <option value="priceDesc">Sort: Highest Offered Rate</option>
+            <option value="priceAsc">Sort: Lowest Offered Rate</option>
+            <option value="qtyDesc">Sort: Highest Required Volume</option>
           </Select>
         </div>
       </Card>
 
-      {/* Buyer Cards List */}
-      {filteredBuyers.length === 0 ? (
+      {/* Results Section */}
+      {loading ? (
+        <div className="min-h-[40vh] flex items-center justify-center">
+          <LoadingState message="Fetching active institutional buyer requirements..." />
+        </div>
+      ) : filteredBuyers.length === 0 ? (
         <EmptyState
-          title="No Buyers Found"
-          description="No buyers match your current criteria. Try resetting the filters or broaden your search."
-          actionLabel="Reset Filters"
-          onAction={() => {
-            setSearchQuery("");
-            setDemandFilter("All");
-            setReliabilityFilter("All");
-            setSortBy("scoreDesc");
-          }}
+          title="No Matching Buyer Requirements Found"
+          description="There are currently no open buyer requirements matching your search filters. Prospective buyers will reach out once you list your produce."
+          icon={Users}
         />
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           {filteredBuyers.map((b) => (
-            <div
+            <Card
               key={b.id}
-              className={`buyer-card-anim rounded-2xl border transition-all duration-200 p-4 sm:p-6 ${
-                b.topMatch
-                  ? "bg-gradient-to-br from-emerald-50/70 via-white to-white border-2 border-emerald-500 shadow-xs hover:shadow-md"
-                  : "bg-white border-gray-200/90 hover:border-emerald-300 shadow-2xs hover:shadow-xs"
-              }`}
+              className="buyer-card-anim border-gray-200/90 hover:border-emerald-400 p-5 space-y-4 transition-all hover:shadow-xs"
             >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                {/* Left Info */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {b.topMatch && (
-                      <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                        <Sparkles size={12} className="text-emerald-600" />
-                        #1 Top Algorithm Match
-                      </span>
-                    )}
-                    {b.verified && (
-                      <span className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <ShieldCheck size={12} /> Verified Trader
-                      </span>
-                    )}
-                    <span className="text-xs text-gray-500">
-                      Looking for <strong>{b.crop}</strong>
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-                      {b.name}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-gray-900 text-base">
+                      {b.buyer_name || "Verified Buyer"}
                     </h3>
-                    <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
-                      <MapPin size={13} className="text-gray-400" />
-                      {b.location} • {b.distance} km
-                    </span>
+                    <Badge variant="emerald" dot>
+                      Open Order
+                    </Badge>
                   </div>
-
-                  {/* Badges & tags */}
-                  <div className="flex items-center gap-3 text-xs text-gray-600 flex-wrap">
-                    <span>
-                      Order Volume: <strong className="text-gray-800">{b.quantityRequired}</strong>
-                    </span>
-                    <span>•</span>
-                    <span>
-                      Payment Speed: <strong className="text-emerald-700">{b.paymentSpeed}</strong>
-                    </span>
-                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                    <MapPin size={13} className="text-gray-400" />
+                    {b.location || "Delivery Point on Request"}
+                  </p>
                 </div>
 
-                {/* Right: Metrics & Score */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-white sm:bg-gray-50/80 p-3.5 sm:p-4 rounded-xl border border-gray-100 sm:border-gray-200 flex-shrink-0">
-                  <div className="text-left sm:text-right">
-                    <span className="text-xs text-gray-400 block">Offered Rate</span>
-                    <span className="text-xl sm:text-2xl font-black text-emerald-700">
-                      ₹{b.offeredPrice}
-                    </span>
-                    <span className="text-xs text-gray-500"> / quintal</span>
-                  </div>
-
-                  <div className="h-8 w-px bg-gray-200 hidden sm:block" />
-
-                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Demand</span>
-                      <span className={`font-bold ${b.demand === "High" ? "text-emerald-700" : "text-gray-700"}`}>
-                        {b.demand}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Reliability</span>
-                      <span className="font-bold text-emerald-700">{b.reliability}%</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Distance</span>
-                      <span className="font-semibold text-gray-700">{b.distance} km</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400 block text-[10px]">Opp. Score</span>
-                      <span className="font-extrabold text-emerald-600">{b.score}/100</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    variant={b.topMatch ? "primary" : "outline"}
-                    onClick={() => handleOpenOffer(b)}
-                    className="w-full sm:w-auto"
-                  >
-                    Contact Buyer
-                  </Button>
+                <div className="text-right">
+                  <span className="text-xs text-gray-400 block">Ceiling Rate</span>
+                  <span className="text-xl font-extrabold text-emerald-700">
+                    {b.max_price ? `₹${Number(b.max_price).toLocaleString()}` : "Open"}
+                  </span>
+                  <span className="text-xs text-gray-500"> / {b.unit}</span>
                 </div>
               </div>
-            </div>
+
+              {/* Requirement Specs */}
+              <div className="bg-gray-50 rounded-xl p-3 grid grid-cols-3 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-400 block">Crop</span>
+                  <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
+                    🌾 {b.crop_name}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-gray-400 block">Volume Needed</span>
+                  <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
+                    <Package size={13} className="text-gray-400" />
+                    {b.quantity} {b.unit}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-gray-400 block">Need By</span>
+                  <span className="font-semibold text-gray-700 flex items-center gap-1 mt-0.5">
+                    <Calendar size={13} className="text-gray-400" />
+                    {b.required_by ? b.required_by.split("T")[0] : "Urgent"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  Target Grade: <strong>{b.quality_grade || "Any Quality"}</strong>
+                </span>
+
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => handleOpenOffer(b)}
+                  icon={Send}
+                >
+                  Send Proposal
+                </Button>
+              </div>
+            </Card>
           ))}
         </div>
       )}
 
-      {/* Contact Buyer & Send Offer Modal */}
-      <Modal
-        isOpen={offerModalOpen}
-        onClose={() => setOfferModalOpen(false)}
-        title={`Send Direct Offer to ${selectedBuyer?.name}`}
-        subtitle={`Negotiate consignment terms for ${selectedBuyer?.crop} • ${selectedBuyer?.location}`}
-      >
-        {selectedBuyer && (
-          <form onSubmit={handleSendOfferSubmit} className="space-y-4 text-xs sm:text-sm">
+      {/* Offer Submission Modal */}
+      {selectedBuyer && (
+        <Modal
+          isOpen={offerModalOpen}
+          onClose={() => setOfferModalOpen(false)}
+          title={`Submit Offer to ${selectedBuyer.buyer_name || "Buyer"}`}
+          subtitle={`Requirement: ${selectedBuyer.quantity} ${selectedBuyer.unit} of ${selectedBuyer.crop_name}`}
+        >
+          <form onSubmit={handleSendOfferSubmit} className="space-y-4">
+            {offerError && (
+              <div className="p-3 rounded-lg bg-red-50 text-xs text-red-700 flex items-center gap-2">
+                <AlertTriangle size={16} />
+                <span>{offerError}</span>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
-                label="Offer Quantity (kg)"
+                label={`Your Offer Rate (₹ / ${selectedBuyer.unit})`}
                 type="number"
-                value={offerQuantity}
-                onChange={(e) => setOfferQuantity(Number(e.target.value))}
-                helperText={`~${(offerQuantity / 100).toFixed(1)} Quintals`}
                 required
-              />
-
-              <Input
-                label="Your Price (₹ / quintal)"
-                type="number"
                 value={offerPrice}
-                onChange={(e) => setOfferPrice(Number(e.target.value))}
-                suffix="₹/q"
-                required
+                onChange={(e) => setOfferPrice(e.target.value)}
+                helperText={`Buyer maximum: ₹${selectedBuyer.max_price || "Open"}`}
               />
-            </div>
 
-            {/* MSP Gap Alert Box */}
-            <div className={`p-3.5 rounded-xl border ${
-              mspDifference >= 0
-                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                : "bg-amber-50 border-amber-200 text-amber-900"
-            }`}>
-              <div className="flex items-center gap-2 font-bold text-xs sm:text-sm">
-                {mspDifference >= 0 ? (
-                  <CheckCircle2 size={16} className="text-emerald-600" />
-                ) : (
-                  <AlertTriangle size={16} className="text-amber-600" />
-                )}
-                <span>MSP Benchmark Comparative Analysis</span>
-              </div>
-              <p className="mt-1 text-xs leading-relaxed">
-                Applicable MSP benchmark for this commodity is <strong>₹{selectedBuyer.mspBenchmark}/q</strong>.
-              </p>
-              <div className="mt-2 pt-2 border-t border-current/20 flex items-center justify-between text-xs font-semibold">
-                <span>Offered Rate: ₹{offerPrice}/q</span>
-                <span className={mspDifference >= 0 ? "text-emerald-700" : "text-amber-800"}>
-                  {mspDifference >= 0
-                    ? `+₹${mspDifference}/q above MSP`
-                    : `-₹${Math.abs(mspDifference)}/q below MSP`}
-                </span>
-              </div>
-            </div>
-
-            {/* Delivery Date */}
-            <div>
               <Input
-                label="Preferred Consignment Pickup Date"
-                type="date"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                helperText="Buyer and farmer can mutually agree on final vehicle arrival."
+                label={`Supply Volume (${selectedBuyer.unit})`}
+                type="number"
                 required
+                value={offerQuantity}
+                onChange={(e) => setOfferQuantity(e.target.value)}
               />
             </div>
 
-            <div className="pt-2 flex gap-3">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                Note to Buyer
+              </label>
+              <textarea
+                rows={3}
+                value={offerMessage}
+                onChange={(e) => setOfferMessage(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 p-2.5 text-sm text-gray-900 outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20"
+                placeholder="Details regarding quality grade, packaging, or dispatch readiness..."
+              />
+            </div>
+
+            <div className="pt-2 flex justify-end gap-3">
               <Button
-                type="button"
                 variant="outline"
-                className="flex-1"
+                type="button"
                 onClick={() => setOfferModalOpen(false)}
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                variant="primary"
+                loading={submittingOffer}
+                icon={Send}
               >
-                Send Offer
+                Submit Offer
               </Button>
             </div>
           </form>
-        )}
-      </Modal>
+        </Modal>
+      )}
 
-      {/* Offer Sent Success Modal */}
+      {/* Success Confirmation Modal */}
       <Modal
         isOpen={successModalOpen}
         onClose={() => setSuccessModalOpen(false)}
         title="Commercial Offer Dispatched!"
-        subtitle="Your terms have been pushed to the buyer's procurement desk."
+        subtitle="Your proposal has been officially registered and forwarded to the buyer."
       >
-        <div className="space-y-4 text-center sm:text-left">
-          <div className="mx-auto sm:mx-0 h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+        <div className="space-y-4">
+          <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
             <CheckCircle2 size={28} />
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs sm:text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">Target Buyer:</span>
-              <span className="font-bold text-gray-900">{selectedBuyer?.name}</span>
+          {createdOfferData && (
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs sm:text-sm text-gray-700">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Offer Tracking ID:</span>
+                <span className="font-bold text-gray-900">#KS-OFFER-{createdOfferData.offerId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Recipient Buyer:</span>
+                <span className="font-semibold text-gray-900">{createdOfferData.buyerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Offered Volume:</span>
+                <span className="font-semibold text-gray-900">
+                  {createdOfferData.quantity} {createdOfferData.unit} of {createdOfferData.crop}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Offered Rate:</span>
+                <span className="font-bold text-emerald-700">₹{createdOfferData.price} / {createdOfferData.unit}</span>
+              </div>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Offered Volume:</span>
-              <span className="font-semibold">{offerQuantity} kg</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Quoted Price:</span>
-              <span className="font-bold text-emerald-700">₹{offerPrice}/q</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Delivery Target:</span>
-              <span className="font-semibold">{deliveryDate}</span>
-            </div>
-          </div>
+          )}
 
-          <Button
-            className="w-full"
-            onClick={() => {
-              setSuccessModalOpen(false);
-              window.location.href = "/offers";
-            }}
-          >
-            Track in My Offers
-          </Button>
+          <p className="text-xs text-gray-500">
+            You can negotiate counter-offers and monitor acceptance status under My Offers.
+          </p>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              className="flex-1"
+              onClick={() => setSuccessModalOpen(false)}
+            >
+              Done
+            </Button>
+            <Link to="/offers" className="flex-1">
+              <Button variant="outline" className="w-full">
+                Go to My Offers
+              </Button>
+            </Link>
+          </div>
         </div>
       </Modal>
     </div>
