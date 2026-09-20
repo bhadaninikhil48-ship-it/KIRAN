@@ -24,18 +24,13 @@ import { animateStagger } from "../utils/animations";
 import { api } from "../services/api";
 
 export function SellProduce() {
-  const [crop, setCrop] = useState("Tomato");
-  const [quantity, setQuantity] = useState(500);
+  const [crop, setCrop] = useState("");
+  const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("kg");
   const [grade, setGrade] = useState("Grade A");
-  const [expectedPrice, setExpectedPrice] = useState(2750);
+  const [expectedPrice, setExpectedPrice] = useState("");
   const [location, setLocation] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 7);
-    return d.toISOString().split("T")[0];
-  });
-
+const [deliveryDate, setDeliveryDate] = useState("");
   // Data states
   const [myProduce, setMyProduce] = useState([]);
   const [loadingProduce, setLoadingProduce] = useState(true);
@@ -254,20 +249,48 @@ export function SellProduce() {
             <form onSubmit={handleListProduce} className="space-y-5">
               {/* 1. Crop Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Select
-                  label="Crop Name"
-                  value={crop}
-                  onChange={(e) => setCrop(e.target.value)}
-                  required
-                >
-                  <option value="Tomato">🍅 Tomato (टमाटर)</option>
-                  <option value="Potato">🥔 Potato (आलू)</option>
-                  <option value="Onion">🧅 Onion (प्याज)</option>
-                  <option value="Wheat">🌾 Wheat (गेहूं)</option>
-                  <option value="Garlic">🧄 Garlic (लहसुन)</option>
-                  <option value="Mango">🥭 Mango (आम)</option>
-                  <option value="Grapes">🍇 Grapes (अंगूर)</option>
-                </Select>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                    Crop Name <span className="text-red-500">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    list="crop-options"
+                    value={crop}
+                    onChange={(e) => setCrop(e.target.value)}
+                    placeholder="Type or select crop name"
+                    required
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-100"
+                  />
+
+                  <datalist id="crop-options">
+                    <option value="Tomato" />
+                    <option value="Potato" />
+                    <option value="Onion" />
+                    <option value="Wheat" />
+                    <option value="Garlic" />
+                    <option value="Mango" />
+                    <option value="Grapes" />
+
+                    {/* More common crops */}
+                    <option value="Rice" />
+                    <option value="Maize" />
+                    <option value="Chilli" />
+                    <option value="Apple" />
+                    <option value="Banana" />
+                    <option value="Pomegranate" />
+                    <option value="Guava" />
+                    <option value="Papaya" />
+                    <option value="Carrot" />
+                    <option value="Cabbage" />
+                    <option value="Cauliflower" />
+                    <option value="Peas" />
+                    <option value="Soybean" />
+                    <option value="Groundnut" />
+                    <option value="Mustard" />
+                  </datalist>
+                </div>
 
                 <Select
                   label="Quality / Grade"
@@ -275,9 +298,9 @@ export function SellProduce() {
                   onChange={(e) => setGrade(e.target.value)}
                   required
                 >
-                  <option value="Grade A">Grade A (Firm, Uniform, Export/Retail)</option>
-                  <option value="Grade B">Grade B (Standard Mandi Quality)</option>
-                  <option value="Grade C">Grade C (Processing / Pulping)</option>
+                  <option value="Grade A">Grade A </option>
+                  <option value="Grade B">Grade B </option>
+                  <option value="Grade C">Grade C </option>
                 </Select>
               </div>
 
@@ -285,6 +308,7 @@ export function SellProduce() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Quantity"
+                  placeholder="2700"
                   type="number"
                   min="1"
                   step="1"
@@ -309,6 +333,7 @@ export function SellProduce() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
                   label="Target Quoted Rate (₹ / quintal)"
+                  placeholder="5000"
                   type="number"
                   min="100"
                   value={expectedPrice}
@@ -321,7 +346,7 @@ export function SellProduce() {
                   label="Farmgate Location / Cluster"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Indore, Madhya Pradesh"
+                  placeholder="e.g. Mumbai, Maharashtra"
                   icon={MapPin}
                   required
                 />

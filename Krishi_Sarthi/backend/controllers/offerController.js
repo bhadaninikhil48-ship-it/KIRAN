@@ -256,3 +256,70 @@ export const updateOfferStatus = async (req, res) => {
         connection.release();
     }
 };
+
+export const getMyOffers = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get farmer profile
+        const [farmerRows] = await db.query(
+            `SELECT id
+             FROM farmer_profiles
+             WHERE user_id = ?`,
+            [userId]
+        );
+
+        if (farmerRows.length === 0) {
+            return res.status(404).json({
+                message: "Farmer profile not found"
+            });
+        }
+
+        const farmerId = farmerRows[0].id;
+
+        // Get farmer's offers
+        const [offers] = await db.query(
+            `SELECT
+                offers.id,
+                offers.requirement_id,
+                offers.offer_price,
+                offers.quantity,
+                offers.message,
+                offers.status,
+                offers.created_at,
+
+                buyer_requirements.crop_name,
+                buyer_requirements.unit,
+                buyer_requirements.quality_grade,
+                buyer_requirements.max_price,
+                buyer_requirements.location,
+                buyer_requirements.required_by,
+
+                users.name AS buyer_name
+
+             FROM offers
+
+             INNER JOIN buyer_requirements
+                ON offers.requirement_id = buyer_requirements.id
+
+             INNER JOIN users
+                ON buyer_requirements.buyer_id = users.id
+
+             WHERE offers.farmer_id = ?
+
+             ORDER BY offers.created_at DESC`,
+            [farmerId]
+        );
+
+        res.status(200).json({
+            offers
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+};
