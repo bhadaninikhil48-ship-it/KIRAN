@@ -30,9 +30,21 @@ export const register = async (req, res) => {
             [name, email, hashedPassword, role]
         );
 
+        const userId = result.insertId;
+
+        // Create farmer profile
+        if (role === "farmer") {
+
+            await db.query(
+                `INSERT INTO farmer_profiles (user_id)
+                 VALUES (?)`,
+                [userId]
+            );
+        }
+
         res.status(201).json({
             message: "User registered successfully",
-            userId: result.insertId
+            userId
         });
 
     } catch (error) {
@@ -44,7 +56,6 @@ export const register = async (req, res) => {
         });
     }
 };
-
 
 export const login = async (req, res) => {
 

@@ -1,5 +1,43 @@
 import db from "../config/db.js";
 
+export const getProfile = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const [profiles] = await db.query(
+            `SELECT
+                u.name,
+                u.email,
+                fp.phone,
+                fp.village,
+                fp.district,
+                fp.state
+             FROM users u
+             LEFT JOIN farmer_profiles fp
+                ON u.id = fp.user_id
+             WHERE u.id = ?`,
+            [userId]
+        );
+
+        if (profiles.length === 0) {
+            return res.status(404).json({
+                message: "Farmer not found"
+            });
+        }
+
+        res.status(200).json({
+            profile: profiles[0]
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            message: "Server error"
+        });
+    }
+};
+
 export const updateProfile = async (req, res) => {
     try {
         const userId = req.user.id;
