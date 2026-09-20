@@ -30,7 +30,7 @@ export function SellProduce() {
   const [grade, setGrade] = useState("Grade A");
   const [expectedPrice, setExpectedPrice] = useState("");
   const [location, setLocation] = useState("");
-const [deliveryDate, setDeliveryDate] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
   // Data states
   const [myProduce, setMyProduce] = useState([]);
   const [loadingProduce, setLoadingProduce] = useState(true);
@@ -38,260 +38,261 @@ const [deliveryDate, setDeliveryDate] = useState("");
   const [openRequirements, setOpenRequirements] = useState([]);
   const [loadingReqs, setLoadingReqs] = useState(false);
   const [liveBenchmarkPrice, setLiveBenchmarkPrice] = useState(null);
+  const [showSellForm, setShowSellForm] = useState(false);
 
   // Same 250 crop options used in the marketplace crop filter
   const cropOptions = [
-      { value: "Rice", label: "Rice (चावल)" },
-      { value: "Wheat", label: "Wheat (गेहूँ)" },
-      { value: "Potato", label: "Potato (आलू)" },
-      { value: "Onion", label: "Onion (प्याज़)" },
-      { value: "Tomato", label: "Tomato (टमाटर)" },
-      { value: "Soybean", label: "Soybean (सोयाबीन)" },
-      { value: "Maize", label: "Maize (मक्का)" },
-      { value: "Cotton", label: "Cotton (कपास)" },
-      { value: "Sugarcane", label: "Sugarcane (गन्ना)" },
-      { value: "Gram", label: "Gram (चना)" },
-      { value: "Tur", label: "Tur (अरहर)" },
-      { value: "Jowar", label: "Jowar (ज्वार)" },
-      { value: "Bajra", label: "Bajra (बाजरा)" },
-      { value: "Groundnut", label: "Groundnut (मूंगफली)" },
-      { value: "Chilli", label: "Chilli (मिर्च)" },
-      { value: "Banana", label: "Banana (केला)" },
-      { value: "Garlic", label: "Garlic (लहसुन)" },
-      { value: "Grapes", label: "Grapes (अंगूर)" },
-      { value: "Pomegranate", label: "Pomegranate (अनार)" },
-      { value: "Peas", label: "Peas (मटर)" },
-      { value: "Cabbage", label: "Cabbage (पत्तागोभी)" },
-      { value: "Cauliflower", label: "Cauliflower (फूलगोभी)" },
-      { value: "Carrot", label: "Carrot (गाजर)" },
-      { value: "Okra", label: "Okra (भिंडी)" },
-      { value: "Brinjal", label: "Brinjal (बैंगन)" },
-      { value: "Cucumber", label: "Cucumber (खीरा)" },
-      { value: "Pumpkin", label: "Pumpkin (कद्दू)" },
-      { value: "Bitter Gourd", label: "Bitter Gourd (करेला)" },
-      { value: "Bottle Gourd", label: "Bottle Gourd (लौकी)" },
-      { value: "Ridge Gourd", label: "Ridge Gourd (तुरई)" },
-      { value: "Green Chilli", label: "Green Chilli (हरी मिर्च)" },
-      { value: "Lady Finger", label: "Lady Finger (भिंडी)" },
-      { value: "Mango", label: "Mango (आम)" },
-      { value: "Papaya", label: "Papaya (पपीता)" },
-      { value: "Guava", label: "Guava (अमरूद)" },
-      { value: "Apple", label: "Apple (सेब)" },
-      { value: "Orange", label: "Orange (संतरा)" },
-      { value: "Lemon", label: "Lemon (नींबू)" },
-      { value: "Pineapple", label: "Pineapple (अनानास)" },
-      { value: "Watermelon", label: "Watermelon (तरबूज)" },
-      { value: "Muskmelon", label: "Muskmelon (खरबूजा)" },
-      { value: "Coconut", label: "Coconut (नारियल)" },
-      { value: "Cashew", label: "Cashew (काजू)" },
-      { value: "Almond", label: "Almond (बादाम)" },
-      { value: "Walnut", label: "Walnut (अखरोट)" },
-      { value: "Mustard", label: "Mustard (सरसों)" },
-      { value: "Sesame", label: "Sesame (तिल)" },
-      { value: "Sunflower", label: "Sunflower (सूरजमुखी)" },
-      { value: "Linseed", label: "Linseed (अलसी)" },
-      { value: "Castor", label: "Castor (अरंडी)" },
-      { value: "Safflower", label: "Safflower (कुसुम)" },
-      { value: "Tobacco", label: "Tobacco (तंबाकू)" },
-      { value: "Jute", label: "Jute (जूट)" },
-      { value: "Tea", label: "Tea (चाय)" },
-      { value: "Coffee", label: "Coffee (कॉफी)" },
-      { value: "Rubber", label: "Rubber (रबर)" },
-      { value: "Coriander", label: "Coriander (धनिया)" },
-      { value: "Cumin", label: "Cumin (जीरा)" },
-      { value: "Fennel", label: "Fennel (सौंफ)" },
-      { value: "Fenugreek", label: "Fenugreek (मेथी)" },
-      { value: "Ajwain", label: "Ajwain (अजवाइन)" },
-      { value: "Isabgol", label: "Isabgol (ईसबगोल)" },
-      { value: "Black Pepper", label: "Black Pepper (काली मिर्च)" },
-      { value: "Cardamom", label: "Cardamom (इलायची)" },
-      { value: "Turmeric", label: "Turmeric (हल्दी)" },
-      { value: "Ginger", label: "Ginger (अदरक)" },
-      { value: "Clove", label: "Clove (लौंग)" },
-      { value: "Cinnamon", label: "Cinnamon (दालचीनी)" },
-      { value: "Nutmeg", label: "Nutmeg (जायफल)" },
-      { value: "Tamarind", label: "Tamarind (इमली)" },
-      { value: "Drumstick", label: "Drumstick (सहजन)" },
-      { value: "Spinach", label: "Spinach (पालक)" },
-      { value: "Amaranthus", label: "Amaranthus (चौलाई)" },
-      { value: "Mint", label: "Mint (पुदीना)" },
-      { value: "Curry Leaves", label: "Curry Leaves (करी पत्ता)" },
-      { value: "Fenugreek Leaves", label: "Fenugreek Leaves (मेथी पत्ता)" },
-      { value: "Beetroot", label: "Beetroot (चुकंदर)" },
-      { value: "Radish", label: "Radish (मूली)" },
-      { value: "Turnip", label: "Turnip (शलजम)" },
-      { value: "Sweet Potato", label: "Sweet Potato (शकरकंद)" },
-      { value: "Yam", label: "Yam (जिमीकंद)" },
-      { value: "Elephant Yam", label: "Elephant Yam (सूरन)" },
-      { value: "Colocasia", label: "Colocasia (अरबी)" },
-      { value: "Tapioca", label: "Tapioca (कसावा)" },
-      { value: "Green Peas", label: "Green Peas (हरी मटर)" },
-      { value: "French Beans", label: "French Beans (फ्रेंच बीन्स)" },
-      { value: "Cluster Beans", label: "Cluster Beans (ग्वार फली)" },
-      { value: "Broad Beans", label: "Broad Beans (सेम)" },
-      { value: "Cowpea", label: "Cowpea (लोबिया)" },
-      { value: "Indian Beans", label: "Indian Beans (सेम)" },
-      { value: "Chickpea", label: "Chickpea (काबुली चना)" },
-      { value: "Black Gram", label: "Black Gram (उड़द)" },
-      { value: "Green Gram", label: "Green Gram (मूंग)" },
-      { value: "Lentil", label: "Lentil (मसूर)" },
-      { value: "Peanut", label: "Peanut (मूंगफली)" },
-      { value: "Pigeon Pea", label: "Pigeon Pea (अरहर)" },
-      { value: "Horse Gram", label: "Horse Gram (कुल्थी)" },
-      { value: "Moth Bean", label: "Moth Bean (मोठ)" },
-      { value: "Field Pea", label: "Field Pea (मटर)" },
-      { value: "Barley", label: "Barley (जौ)" },
-      { value: "Oats", label: "Oats (जई)" },
-      { value: "Ragi", label: "Ragi (रागी)" },
-      { value: "Kodo Millet", label: "Kodo Millet (कोदो)" },
-      { value: "Little Millet", label: "Little Millet (कुटकी)" },
-      { value: "Foxtail Millet", label: "Foxtail Millet (कंगनी)" },
-      { value: "Barnyard Millet", label: "Barnyard Millet (सांवा)" },
-      { value: "Proso Millet", label: "Proso Millet (चेना)" },
-      { value: "Pearl Millet", label: "Pearl Millet (बाजरा)" },
-      { value: "Finger Millet", label: "Finger Millet (रागी)" },
-      { value: "Sorghum", label: "Sorghum (ज्वार)" },
-      { value: "Maize Fodder", label: "Maize Fodder (मक्का चारा)" },
-      { value: "Berseem", label: "Berseem (बरसीम)" },
-      { value: "Lucerne", label: "Lucerne (लूसर्न)" },
-      { value: "Fodder", label: "Fodder (चारा)" },
-      { value: "Green Fodder", label: "Green Fodder (हरा चारा)" },
-      { value: "Ber", label: "Ber (बेर)" },
-      { value: "Custard Apple", label: "Custard Apple (सीताफल)" },
-      { value: "Sapota", label: "Sapota (चीकू)" },
-      { value: "Litchi", label: "Litchi (लीची)" },
-      { value: "Jackfruit", label: "Jackfruit (कटहल)" },
-      { value: "Pears", label: "Pears (नाशपाती)" },
-      { value: "Peach", label: "Peach (आड़ू)" },
-      { value: "Plum", label: "Plum (आलूबुखारा)" },
-      { value: "Apricot", label: "Apricot (खुबानी)" },
-      { value: "Papaya Raw", label: "Papaya Raw (कच्चा पपीता)" },
-      { value: "Amla", label: "Amla (आंवला)" },
-      { value: "Jamun", label: "Jamun (जामुन)" },
-      { value: "Karonda", label: "Karonda (करौंदा)" },
-      { value: "Fig", label: "Fig (अंजीर)" },
-      { value: "Dates", label: "Dates (खजूर)" },
-      { value: "Dragon Fruit", label: "Dragon Fruit (ड्रैगन फ्रूट)" },
-      { value: "Kiwi", label: "Kiwi (कीवी)" },
-      { value: "Strawberry", label: "Strawberry (स्ट्रॉबेरी)" },
-      { value: "Mosambi", label: "Mosambi (मौसंबी)" },
-      { value: "Sweet Orange", label: "Sweet Orange (मीठा संतरा)" },
-      { value: "Tinda", label: "Tinda (टिंडा)" },
-      { value: "Chow Chow", label: "Chow Chow (चायोटे)" },
-      { value: "Ash Gourd", label: "Ash Gourd (पेठा)" },
-      { value: "Snake Gourd", label: "Snake Gourd (चिचिंडा)" },
-      { value: "Pointed Gourd", label: "Pointed Gourd (परवल)" },
-      { value: "Ivy Gourd", label: "Ivy Gourd (कुंदरू)" },
-      { value: "Capsicum", label: "Capsicum (शिमला मिर्च)" },
-      { value: "Green Beans", label: "Green Beans (हरी बीन्स)" },
-      { value: "Broccoli", label: "Broccoli (ब्रोकोली)" },
-      { value: "Celery", label: "Celery (अजमोद)" },
-      { value: "Leek", label: "Leek (लीक)" },
-      { value: "Kohlrabi", label: "Kohlrabi (गांठगोभी)" },
-      { value: "Knol Khol", label: "Knol Khol (गांठगोभी)" },
-      { value: "Spring Onion", label: "Spring Onion (हरा प्याज़)" },
-      { value: "Raw Banana", label: "Raw Banana (कच्चा केला)" },
-      { value: "Raw Mango", label: "Raw Mango (कच्चा आम)" },
-      { value: "Green Papaya", label: "Green Papaya (हरा पपीता)" },
-      { value: "Mushroom", label: "Mushroom (मशरूम)" },
-      { value: "Button Mushroom", label: "Button Mushroom (बटन मशरूम)" },
-      { value: "Dried Peas", label: "Dried Peas (सूखी मटर)" },
-      { value: "Dried Chillies", label: "Dried Chillies (सूखी मिर्च)" },
-      { value: "Dry Ginger", label: "Dry Ginger (सोंठ)" },
-      { value: "Dry Coconut", label: "Dry Coconut (सूखा नारियल)" },
-      { value: "Betel Leaves", label: "Betel Leaves (पान के पत्ते)" },
-      { value: "Arecanut", label: "Arecanut (सुपारी)" },
-      { value: "Betel Nut", label: "Betel Nut (सुपारी)" },
-      { value: "Mahua", label: "Mahua (महुआ)" },
-      { value: "Neem Seed", label: "Neem Seed (नीम बीज)" },
-      { value: "Tendu Leaves", label: "Tendu Leaves (तेंदू पत्ता)" },
-      { value: "Moringa", label: "Moringa (सहजन)" },
-      { value: "Flaxseed", label: "Flaxseed (अलसी)" },
-      { value: "Niger Seed", label: "Niger Seed (रामतिल)" },
-      { value: "Quinoa", label: "Quinoa (क्विनोआ)" },
-      { value: "Chia Seed", label: "Chia Seed (चिया बीज)" },
-      { value: "Rajma", label: "Rajma (राजमा)" },
-      { value: "Kabuli Chana", label: "Kabuli Chana (काबुली चना)" },
-      { value: "Masoor", label: "Masoor (मसूर)" },
-      { value: "Urad", label: "Urad (उड़द)" },
-      { value: "Moong", label: "Moong (मूंग)" },
-      { value: "Arhar", label: "Arhar (अरहर)" },
-      { value: "Gram Dal", label: "Gram Dal (चना दाल)" },
-      { value: "Mustard Seed", label: "Mustard Seed (सरसों बीज)" },
-      { value: "Rapeseed", label: "Rapeseed (राई)" },
-      { value: "Canola", label: "Canola (कैनोला)" },
-      { value: "Soybean Seed", label: "Soybean Seed (सोयाबीन बीज)" },
-      { value: "Cotton Seed", label: "Cotton Seed (कपास बीज)" },
-      { value: "Castor Seed", label: "Castor Seed (अरंडी बीज)" },
-      { value: "Sunflower Seed", label: "Sunflower Seed (सूरजमुखी बीज)" },
-      { value: "Sesame Seed", label: "Sesame Seed (तिल बीज)" },
-      { value: "Coriander Seed", label: "Coriander Seed (धनिया बीज)" },
-      { value: "Cumin Seed", label: "Cumin Seed (जीरा बीज)" },
-      { value: "Fennel Seed", label: "Fennel Seed (सौंफ बीज)" },
-      { value: "Fenugreek Seed", label: "Fenugreek Seed (मेथी बीज)" },
-      { value: "Ajwain Seed", label: "Ajwain Seed (अजवाइन बीज)" },
-      { value: "Poppy Seed", label: "Poppy Seed (खसखस)" },
-      { value: "Isabgol Seed", label: "Isabgol Seed (ईसबगोल बीज)" },
-      { value: "Chironji", label: "Chironji (चिरौंजी)" },
-      { value: "Makhana", label: "Makhana (मखाना)" },
-      { value: "Lotus Seed", label: "Lotus Seed (कमल बीज)" },
-      { value: "Sugar Beet", label: "Sugar Beet (चुकंदर)" },
-      { value: "Sweet Corn", label: "Sweet Corn (मीठा मक्का)" },
-      { value: "Baby Corn", label: "Baby Corn (बेबी कॉर्न)" },
-      { value: "Popcorn", label: "Popcorn (पॉपकॉर्न)" },
-      { value: "Bamboo", label: "Bamboo (बांस)" },
-      { value: "Hemp", label: "Hemp (हेम्प)" },
-      { value: "Stevia", label: "Stevia (स्टेविया)" },
-      { value: "Aloe Vera", label: "Aloe Vera (एलोवेरा)" },
-      { value: "Ashwagandha", label: "Ashwagandha (अश्वगंधा)" },
-      { value: "Tulsi", label: "Tulsi (तुलसी)" },
-      { value: "Mentha", label: "Mentha (पुदीना तेल फसल)" },
-      { value: "Lemongrass", label: "Lemongrass (लेमनग्रास)" },
-      { value: "Marigold", label: "Marigold (गेंदा)" },
-      { value: "Rose", label: "Rose (गुलाब)" },
-      { value: "Jasmine", label: "Jasmine (चमेली)" },
-      { value: "Chrysanthemum", label: "Chrysanthemum (गुलदाउदी)" },
-      { value: "Flowers", label: "Flowers (फूल)" },
-      { value: "Other Vegetables", label: "Other Vegetables (अन्य सब्जियां)" },
-      { value: "Other Fruits", label: "Other Fruits (अन्य फल)" },
-      { value: "Other Pulses", label: "Other Pulses (अन्य दालें)" },
-      { value: "Other Oilseeds", label: "Other Oilseeds (अन्य तिलहन)" },
-      { value: "Other Cereals", label: "Other Cereals (अन्य अनाज)" },
-      { value: "Other Spices", label: "Other Spices (अन्य मसाले)" },
-      { value: "Other", label: "Other (अन्य)" },
-      { value: "Kodo", label: "Kodo (कोदो)" },
-      { value: "Kutki", label: "Kutki (कुटकी)" },
-      { value: "Sama", label: "Sama (सांवा)" },
-      { value: "Chana", label: "Chana (चना)" },
-      { value: "Dill Seed", label: "Dill Seed (सोया/सुवा बीज)" },
-      { value: "Methi", label: "Methi (मेथी)" },
-      { value: "Tori", label: "Tori (तोरई)" },
-      { value: "Ridgeguard", label: "Ridgeguard (तुरई)" },
-      { value: "Coconut Copra", label: "Coconut Copra (नारियल गरी)" },
-      { value: "Copra", label: "Copra (सूखा नारियल)" },
-      { value: "Paddy", label: "Paddy (धान)" },
-      { value: "Paddy Straw", label: "Paddy Straw (धान का भूसा)" },
-      { value: "Wheat Straw", label: "Wheat Straw (गेहूँ का भूसा)" },
-      { value: "Maize Stover", label: "Maize Stover (मक्का चारा)" },
-      { value: "Sugarcane Tops", label: "Sugarcane Tops (गन्ने की पत्तियां)" },
-      { value: "Cane", label: "Cane (गन्ना)" },
-      { value: "Saffron", label: "Saffron (केसर)" },
-      { value: "Vanilla", label: "Vanilla (वेनिला)" },
-      { value: "Ginger Dry", label: "Ginger Dry (सूखी अदरक)" },
-      { value: "Garlic Dry", label: "Garlic Dry (सूखा लहसुन)" },
-      { value: "Onion Dry", label: "Onion Dry (सूखा प्याज़)" },
-      { value: "Red Chilli", label: "Red Chilli (लाल मिर्च)" },
-      { value: "Green Gram Whole", label: "Green Gram Whole (साबुत मूंग)" },
-      { value: "Black Gram Whole", label: "Black Gram Whole (साबुत उड़द)" },
-      { value: "Pigeon Pea Whole", label: "Pigeon Pea Whole (साबुत अरहर)" },
-      { value: "Lentil Whole", label: "Lentil Whole (साबुत मसूर)" },
-      { value: "Peas Dry", label: "Peas Dry (सूखी मटर)" },
-      { value: "Corn", label: "Corn (मक्का)" },
-      { value: "Millets", label: "Millets (मोटे अनाज)" },
-      { value: "Cereal", label: "Cereal (अनाज)" },
-      { value: "Suran", label: "Suran (सूरन)" },
-      { value: "Kachri", label: "Kachri (कचरी)" }
-    ];
+    { value: "Rice", label: "Rice (चावल)" },
+    { value: "Wheat", label: "Wheat (गेहूँ)" },
+    { value: "Potato", label: "Potato (आलू)" },
+    { value: "Onion", label: "Onion (प्याज़)" },
+    { value: "Tomato", label: "Tomato (टमाटर)" },
+    { value: "Soybean", label: "Soybean (सोयाबीन)" },
+    { value: "Maize", label: "Maize (मक्का)" },
+    { value: "Cotton", label: "Cotton (कपास)" },
+    { value: "Sugarcane", label: "Sugarcane (गन्ना)" },
+    { value: "Gram", label: "Gram (चना)" },
+    { value: "Tur", label: "Tur (अरहर)" },
+    { value: "Jowar", label: "Jowar (ज्वार)" },
+    { value: "Bajra", label: "Bajra (बाजरा)" },
+    { value: "Groundnut", label: "Groundnut (मूंगफली)" },
+    { value: "Chilli", label: "Chilli (मिर्च)" },
+    { value: "Banana", label: "Banana (केला)" },
+    { value: "Garlic", label: "Garlic (लहसुन)" },
+    { value: "Grapes", label: "Grapes (अंगूर)" },
+    { value: "Pomegranate", label: "Pomegranate (अनार)" },
+    { value: "Peas", label: "Peas (मटर)" },
+    { value: "Cabbage", label: "Cabbage (पत्तागोभी)" },
+    { value: "Cauliflower", label: "Cauliflower (फूलगोभी)" },
+    { value: "Carrot", label: "Carrot (गाजर)" },
+    { value: "Okra", label: "Okra (भिंडी)" },
+    { value: "Brinjal", label: "Brinjal (बैंगन)" },
+    { value: "Cucumber", label: "Cucumber (खीरा)" },
+    { value: "Pumpkin", label: "Pumpkin (कद्दू)" },
+    { value: "Bitter Gourd", label: "Bitter Gourd (करेला)" },
+    { value: "Bottle Gourd", label: "Bottle Gourd (लौकी)" },
+    { value: "Ridge Gourd", label: "Ridge Gourd (तुरई)" },
+    { value: "Green Chilli", label: "Green Chilli (हरी मिर्च)" },
+    { value: "Lady Finger", label: "Lady Finger (भिंडी)" },
+    { value: "Mango", label: "Mango (आम)" },
+    { value: "Papaya", label: "Papaya (पपीता)" },
+    { value: "Guava", label: "Guava (अमरूद)" },
+    { value: "Apple", label: "Apple (सेब)" },
+    { value: "Orange", label: "Orange (संतरा)" },
+    { value: "Lemon", label: "Lemon (नींबू)" },
+    { value: "Pineapple", label: "Pineapple (अनानास)" },
+    { value: "Watermelon", label: "Watermelon (तरबूज)" },
+    { value: "Muskmelon", label: "Muskmelon (खरबूजा)" },
+    { value: "Coconut", label: "Coconut (नारियल)" },
+    { value: "Cashew", label: "Cashew (काजू)" },
+    { value: "Almond", label: "Almond (बादाम)" },
+    { value: "Walnut", label: "Walnut (अखरोट)" },
+    { value: "Mustard", label: "Mustard (सरसों)" },
+    { value: "Sesame", label: "Sesame (तिल)" },
+    { value: "Sunflower", label: "Sunflower (सूरजमुखी)" },
+    { value: "Linseed", label: "Linseed (अलसी)" },
+    { value: "Castor", label: "Castor (अरंडी)" },
+    { value: "Safflower", label: "Safflower (कुसुम)" },
+    { value: "Tobacco", label: "Tobacco (तंबाकू)" },
+    { value: "Jute", label: "Jute (जूट)" },
+    { value: "Tea", label: "Tea (चाय)" },
+    { value: "Coffee", label: "Coffee (कॉफी)" },
+    { value: "Rubber", label: "Rubber (रबर)" },
+    { value: "Coriander", label: "Coriander (धनिया)" },
+    { value: "Cumin", label: "Cumin (जीरा)" },
+    { value: "Fennel", label: "Fennel (सौंफ)" },
+    { value: "Fenugreek", label: "Fenugreek (मेथी)" },
+    { value: "Ajwain", label: "Ajwain (अजवाइन)" },
+    { value: "Isabgol", label: "Isabgol (ईसबगोल)" },
+    { value: "Black Pepper", label: "Black Pepper (काली मिर्च)" },
+    { value: "Cardamom", label: "Cardamom (इलायची)" },
+    { value: "Turmeric", label: "Turmeric (हल्दी)" },
+    { value: "Ginger", label: "Ginger (अदरक)" },
+    { value: "Clove", label: "Clove (लौंग)" },
+    { value: "Cinnamon", label: "Cinnamon (दालचीनी)" },
+    { value: "Nutmeg", label: "Nutmeg (जायफल)" },
+    { value: "Tamarind", label: "Tamarind (इमली)" },
+    { value: "Drumstick", label: "Drumstick (सहजन)" },
+    { value: "Spinach", label: "Spinach (पालक)" },
+    { value: "Amaranthus", label: "Amaranthus (चौलाई)" },
+    { value: "Mint", label: "Mint (पुदीना)" },
+    { value: "Curry Leaves", label: "Curry Leaves (करी पत्ता)" },
+    { value: "Fenugreek Leaves", label: "Fenugreek Leaves (मेथी पत्ता)" },
+    { value: "Beetroot", label: "Beetroot (चुकंदर)" },
+    { value: "Radish", label: "Radish (मूली)" },
+    { value: "Turnip", label: "Turnip (शलजम)" },
+    { value: "Sweet Potato", label: "Sweet Potato (शकरकंद)" },
+    { value: "Yam", label: "Yam (जिमीकंद)" },
+    { value: "Elephant Yam", label: "Elephant Yam (सूरन)" },
+    { value: "Colocasia", label: "Colocasia (अरबी)" },
+    { value: "Tapioca", label: "Tapioca (कसावा)" },
+    { value: "Green Peas", label: "Green Peas (हरी मटर)" },
+    { value: "French Beans", label: "French Beans (फ्रेंच बीन्स)" },
+    { value: "Cluster Beans", label: "Cluster Beans (ग्वार फली)" },
+    { value: "Broad Beans", label: "Broad Beans (सेम)" },
+    { value: "Cowpea", label: "Cowpea (लोबिया)" },
+    { value: "Indian Beans", label: "Indian Beans (सेम)" },
+    { value: "Chickpea", label: "Chickpea (काबुली चना)" },
+    { value: "Black Gram", label: "Black Gram (उड़द)" },
+    { value: "Green Gram", label: "Green Gram (मूंग)" },
+    { value: "Lentil", label: "Lentil (मसूर)" },
+    { value: "Peanut", label: "Peanut (मूंगफली)" },
+    { value: "Pigeon Pea", label: "Pigeon Pea (अरहर)" },
+    { value: "Horse Gram", label: "Horse Gram (कुल्थी)" },
+    { value: "Moth Bean", label: "Moth Bean (मोठ)" },
+    { value: "Field Pea", label: "Field Pea (मटर)" },
+    { value: "Barley", label: "Barley (जौ)" },
+    { value: "Oats", label: "Oats (जई)" },
+    { value: "Ragi", label: "Ragi (रागी)" },
+    { value: "Kodo Millet", label: "Kodo Millet (कोदो)" },
+    { value: "Little Millet", label: "Little Millet (कुटकी)" },
+    { value: "Foxtail Millet", label: "Foxtail Millet (कंगनी)" },
+    { value: "Barnyard Millet", label: "Barnyard Millet (सांवा)" },
+    { value: "Proso Millet", label: "Proso Millet (चेना)" },
+    { value: "Pearl Millet", label: "Pearl Millet (बाजरा)" },
+    { value: "Finger Millet", label: "Finger Millet (रागी)" },
+    { value: "Sorghum", label: "Sorghum (ज्वार)" },
+    { value: "Maize Fodder", label: "Maize Fodder (मक्का चारा)" },
+    { value: "Berseem", label: "Berseem (बरसीम)" },
+    { value: "Lucerne", label: "Lucerne (लूसर्न)" },
+    { value: "Fodder", label: "Fodder (चारा)" },
+    { value: "Green Fodder", label: "Green Fodder (हरा चारा)" },
+    { value: "Ber", label: "Ber (बेर)" },
+    { value: "Custard Apple", label: "Custard Apple (सीताफल)" },
+    { value: "Sapota", label: "Sapota (चीकू)" },
+    { value: "Litchi", label: "Litchi (लीची)" },
+    { value: "Jackfruit", label: "Jackfruit (कटहल)" },
+    { value: "Pears", label: "Pears (नाशपाती)" },
+    { value: "Peach", label: "Peach (आड़ू)" },
+    { value: "Plum", label: "Plum (आलूबुखारा)" },
+    { value: "Apricot", label: "Apricot (खुबानी)" },
+    { value: "Papaya Raw", label: "Papaya Raw (कच्चा पपीता)" },
+    { value: "Amla", label: "Amla (आंवला)" },
+    { value: "Jamun", label: "Jamun (जामुन)" },
+    { value: "Karonda", label: "Karonda (करौंदा)" },
+    { value: "Fig", label: "Fig (अंजीर)" },
+    { value: "Dates", label: "Dates (खजूर)" },
+    { value: "Dragon Fruit", label: "Dragon Fruit (ड्रैगन फ्रूट)" },
+    { value: "Kiwi", label: "Kiwi (कीवी)" },
+    { value: "Strawberry", label: "Strawberry (स्ट्रॉबेरी)" },
+    { value: "Mosambi", label: "Mosambi (मौसंबी)" },
+    { value: "Sweet Orange", label: "Sweet Orange (मीठा संतरा)" },
+    { value: "Tinda", label: "Tinda (टिंडा)" },
+    { value: "Chow Chow", label: "Chow Chow (चायोटे)" },
+    { value: "Ash Gourd", label: "Ash Gourd (पेठा)" },
+    { value: "Snake Gourd", label: "Snake Gourd (चिचिंडा)" },
+    { value: "Pointed Gourd", label: "Pointed Gourd (परवल)" },
+    { value: "Ivy Gourd", label: "Ivy Gourd (कुंदरू)" },
+    { value: "Capsicum", label: "Capsicum (शिमला मिर्च)" },
+    { value: "Green Beans", label: "Green Beans (हरी बीन्स)" },
+    { value: "Broccoli", label: "Broccoli (ब्रोकोली)" },
+    { value: "Celery", label: "Celery (अजमोद)" },
+    { value: "Leek", label: "Leek (लीक)" },
+    { value: "Kohlrabi", label: "Kohlrabi (गांठगोभी)" },
+    { value: "Knol Khol", label: "Knol Khol (गांठगोभी)" },
+    { value: "Spring Onion", label: "Spring Onion (हरा प्याज़)" },
+    { value: "Raw Banana", label: "Raw Banana (कच्चा केला)" },
+    { value: "Raw Mango", label: "Raw Mango (कच्चा आम)" },
+    { value: "Green Papaya", label: "Green Papaya (हरा पपीता)" },
+    { value: "Mushroom", label: "Mushroom (मशरूम)" },
+    { value: "Button Mushroom", label: "Button Mushroom (बटन मशरूम)" },
+    { value: "Dried Peas", label: "Dried Peas (सूखी मटर)" },
+    { value: "Dried Chillies", label: "Dried Chillies (सूखी मिर्च)" },
+    { value: "Dry Ginger", label: "Dry Ginger (सोंठ)" },
+    { value: "Dry Coconut", label: "Dry Coconut (सूखा नारियल)" },
+    { value: "Betel Leaves", label: "Betel Leaves (पान के पत्ते)" },
+    { value: "Arecanut", label: "Arecanut (सुपारी)" },
+    { value: "Betel Nut", label: "Betel Nut (सुपारी)" },
+    { value: "Mahua", label: "Mahua (महुआ)" },
+    { value: "Neem Seed", label: "Neem Seed (नीम बीज)" },
+    { value: "Tendu Leaves", label: "Tendu Leaves (तेंदू पत्ता)" },
+    { value: "Moringa", label: "Moringa (सहजन)" },
+    { value: "Flaxseed", label: "Flaxseed (अलसी)" },
+    { value: "Niger Seed", label: "Niger Seed (रामतिल)" },
+    { value: "Quinoa", label: "Quinoa (क्विनोआ)" },
+    { value: "Chia Seed", label: "Chia Seed (चिया बीज)" },
+    { value: "Rajma", label: "Rajma (राजमा)" },
+    { value: "Kabuli Chana", label: "Kabuli Chana (काबुली चना)" },
+    { value: "Masoor", label: "Masoor (मसूर)" },
+    { value: "Urad", label: "Urad (उड़द)" },
+    { value: "Moong", label: "Moong (मूंग)" },
+    { value: "Arhar", label: "Arhar (अरहर)" },
+    { value: "Gram Dal", label: "Gram Dal (चना दाल)" },
+    { value: "Mustard Seed", label: "Mustard Seed (सरसों बीज)" },
+    { value: "Rapeseed", label: "Rapeseed (राई)" },
+    { value: "Canola", label: "Canola (कैनोला)" },
+    { value: "Soybean Seed", label: "Soybean Seed (सोयाबीन बीज)" },
+    { value: "Cotton Seed", label: "Cotton Seed (कपास बीज)" },
+    { value: "Castor Seed", label: "Castor Seed (अरंडी बीज)" },
+    { value: "Sunflower Seed", label: "Sunflower Seed (सूरजमुखी बीज)" },
+    { value: "Sesame Seed", label: "Sesame Seed (तिल बीज)" },
+    { value: "Coriander Seed", label: "Coriander Seed (धनिया बीज)" },
+    { value: "Cumin Seed", label: "Cumin Seed (जीरा बीज)" },
+    { value: "Fennel Seed", label: "Fennel Seed (सौंफ बीज)" },
+    { value: "Fenugreek Seed", label: "Fenugreek Seed (मेथी बीज)" },
+    { value: "Ajwain Seed", label: "Ajwain Seed (अजवाइन बीज)" },
+    { value: "Poppy Seed", label: "Poppy Seed (खसखस)" },
+    { value: "Isabgol Seed", label: "Isabgol Seed (ईसबगोल बीज)" },
+    { value: "Chironji", label: "Chironji (चिरौंजी)" },
+    { value: "Makhana", label: "Makhana (मखाना)" },
+    { value: "Lotus Seed", label: "Lotus Seed (कमल बीज)" },
+    { value: "Sugar Beet", label: "Sugar Beet (चुकंदर)" },
+    { value: "Sweet Corn", label: "Sweet Corn (मीठा मक्का)" },
+    { value: "Baby Corn", label: "Baby Corn (बेबी कॉर्न)" },
+    { value: "Popcorn", label: "Popcorn (पॉपकॉर्न)" },
+    { value: "Bamboo", label: "Bamboo (बांस)" },
+    { value: "Hemp", label: "Hemp (हेम्प)" },
+    { value: "Stevia", label: "Stevia (स्टेविया)" },
+    { value: "Aloe Vera", label: "Aloe Vera (एलोवेरा)" },
+    { value: "Ashwagandha", label: "Ashwagandha (अश्वगंधा)" },
+    { value: "Tulsi", label: "Tulsi (तुलसी)" },
+    { value: "Mentha", label: "Mentha (पुदीना तेल फसल)" },
+    { value: "Lemongrass", label: "Lemongrass (लेमनग्रास)" },
+    { value: "Marigold", label: "Marigold (गेंदा)" },
+    { value: "Rose", label: "Rose (गुलाब)" },
+    { value: "Jasmine", label: "Jasmine (चमेली)" },
+    { value: "Chrysanthemum", label: "Chrysanthemum (गुलदाउदी)" },
+    { value: "Flowers", label: "Flowers (फूल)" },
+    { value: "Other Vegetables", label: "Other Vegetables (अन्य सब्जियां)" },
+    { value: "Other Fruits", label: "Other Fruits (अन्य फल)" },
+    { value: "Other Pulses", label: "Other Pulses (अन्य दालें)" },
+    { value: "Other Oilseeds", label: "Other Oilseeds (अन्य तिलहन)" },
+    { value: "Other Cereals", label: "Other Cereals (अन्य अनाज)" },
+    { value: "Other Spices", label: "Other Spices (अन्य मसाले)" },
+    { value: "Other", label: "Other (अन्य)" },
+    { value: "Kodo", label: "Kodo (कोदो)" },
+    { value: "Kutki", label: "Kutki (कुटकी)" },
+    { value: "Sama", label: "Sama (सांवा)" },
+    { value: "Chana", label: "Chana (चना)" },
+    { value: "Dill Seed", label: "Dill Seed (सोया/सुवा बीज)" },
+    { value: "Methi", label: "Methi (मेथी)" },
+    { value: "Tori", label: "Tori (तोरई)" },
+    { value: "Ridgeguard", label: "Ridgeguard (तुरई)" },
+    { value: "Coconut Copra", label: "Coconut Copra (नारियल गरी)" },
+    { value: "Copra", label: "Copra (सूखा नारियल)" },
+    { value: "Paddy", label: "Paddy (धान)" },
+    { value: "Paddy Straw", label: "Paddy Straw (धान का भूसा)" },
+    { value: "Wheat Straw", label: "Wheat Straw (गेहूँ का भूसा)" },
+    { value: "Maize Stover", label: "Maize Stover (मक्का चारा)" },
+    { value: "Sugarcane Tops", label: "Sugarcane Tops (गन्ने की पत्तियां)" },
+    { value: "Cane", label: "Cane (गन्ना)" },
+    { value: "Saffron", label: "Saffron (केसर)" },
+    { value: "Vanilla", label: "Vanilla (वेनिला)" },
+    { value: "Ginger Dry", label: "Ginger Dry (सूखी अदरक)" },
+    { value: "Garlic Dry", label: "Garlic Dry (सूखा लहसुन)" },
+    { value: "Onion Dry", label: "Onion Dry (सूखा प्याज़)" },
+    { value: "Red Chilli", label: "Red Chilli (लाल मिर्च)" },
+    { value: "Green Gram Whole", label: "Green Gram Whole (साबुत मूंग)" },
+    { value: "Black Gram Whole", label: "Black Gram Whole (साबुत उड़द)" },
+    { value: "Pigeon Pea Whole", label: "Pigeon Pea Whole (साबुत अरहर)" },
+    { value: "Lentil Whole", label: "Lentil Whole (साबुत मसूर)" },
+    { value: "Peas Dry", label: "Peas Dry (सूखी मटर)" },
+    { value: "Corn", label: "Corn (मक्का)" },
+    { value: "Millets", label: "Millets (मोटे अनाज)" },
+    { value: "Cereal", label: "Cereal (अनाज)" },
+    { value: "Suran", label: "Suran (सूरन)" },
+    { value: "Kachri", label: "Kachri (कचरी)" }
+  ];
 
   // Status messages
   const [listingSuccess, setListingSuccess] = useState("");
@@ -385,7 +386,17 @@ const [deliveryDate, setDeliveryDate] = useState("");
 
       const res = await api.post("/api/produce", payload);
       setListingSuccess(res.message || "Produce successfully listed on KIRAN marketplace!");
-      fetchMyProduce();
+      await fetchMyProduce();
+      setShowSellForm(false);
+
+      // Reset the form for the next listing.
+      setCrop("");
+      setQuantity("");
+      setUnit("kg");
+      setGrade("Grade A");
+      setExpectedPrice("");
+      setLocation("");
+      setDeliveryDate("");
     } catch (err) {
       setListingError(err.message || "Failed to list produce");
     } finally {
@@ -457,13 +468,24 @@ const [deliveryDate, setDeliveryDate] = useState("");
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              List & Sell Your Produce
+              {showSellForm ? "Sell New Crop" : "List & Sell Your Produce"}
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-gray-500">
               List your harvest to match with open institutional buyer procurement requirements.
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {showSellForm && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSellForm(false)}
+              >
+                Back to Listings
+              </Button>
+            )}
+
             {liveBenchmarkPrice ? (
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Live {crop} Benchmark: ₹{liveBenchmarkPrice.toLocaleString()}/q
@@ -491,23 +513,86 @@ const [deliveryDate, setDeliveryDate] = useState("");
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Form & Inventory (7 cols on lg) */}
-        <div className="lg:col-span-7 space-y-6">
-          <Card className="stagger-block border-gray-200/90">
-            <CardHeader
-              title="Produce & Lot Specification"
-              subtitle="Specify harvest specifications to publish your lot on the KIRAN exchange."
+      {!showSellForm ? (
+        <Card className="stagger-block border-gray-200/90">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 mb-2 border-b border-gray-100">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">
+                My Active Produce Listings
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                Manage your currently listed agricultural lots on KIRAN.
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="primary"
+              icon={Plus}
+              onClick={() => {
+                setListingSuccess("");
+                setListingError("");
+                setShowSellForm(true);
+              }}
+            >
+              Sell New Crop
+            </Button>
+          </div>
+
+          {loadingProduce ? (
+            <LoadingState message="Loading your produce listings..." />
+          ) : myProduce.length === 0 ? (
+            <EmptyState
+              title="No Produce Listed Yet"
+              description="Click 'Sell New Crop' to publish your first agricultural lot on KIRAN."
+              icon={Package}
             />
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {myProduce.map((item) => (
+                <div key={item.id} className="py-3.5 flex items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-gray-900">{item.crop_name}</span>
+                      <StatusBadge status={item.status} />
+                      {item.quality_grade && (
+                        <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                          {item.quality_grade}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {item.quantity} {item.unit} • {item.location || "Farmgate"}
+                      {item.available_from && ` • Ready: ${item.available_from.split("T")[0]}`}
+                    </p>
+                  </div>
 
-            <form onSubmit={handleListProduce} className="space-y-5">
-              {/* 1. Crop Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Crop Name <span className="text-red-500">*</span>
-                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteProduce(item.id)}
+                    title="Delete Listing"
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Form & Inventory (7 cols on lg) */}
+          <div className="lg:col-span-7 space-y-6">
+            <Card className="stagger-block border-gray-200/90">
+              <CardHeader
+                title="Produce & Lot Specification"
+                subtitle="Specify harvest specifications to publish your lot on the KIRAN exchange."
+              />
 
+              <form onSubmit={handleListProduce} className="space-y-5">
+                {/* 1. Crop & Quality */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Select
                     label="Crop Name"
                     value={crop}
@@ -515,277 +600,236 @@ const [deliveryDate, setDeliveryDate] = useState("");
                     required
                   >
                     <option value="">Select crop</option>
-                    {cropOptions.map((cropOption) => (
-                      <option key={cropOption.value} value={cropOption.value}>
-                        {cropOption.label}
+
+                    {cropOptions.map((cropItem) => (
+                      <option key={cropItem.value} value={cropItem.value}>
+                        {cropItem.label}
                       </option>
                     ))}
                   </Select>
-                </div>
 
-                <Select
-                  label="Quality / Grade"
-                  value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
-                  required
-                >
-                  <option value="Grade A">Grade A </option>
-                  <option value="Grade B">Grade B </option>
-                  <option value="Grade C">Grade C </option>
-                </Select>
-              </div>
-
-              {/* 2. Quantity & Unit */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Quantity"
-                  placeholder="2700"
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Number(e.target.value))}
-                  suffix={unit}
-                  required
-                />
-
-                <Select
-                  label="Quantity Unit"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                  required
-                >
-                  <option value="kg">Kilograms (kg)</option>
-                  <option value="quintal">Quintals (q)</option>
-                </Select>
-              </div>
-
-              {/* 3. Expected Price & Farm Location */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Target Quoted Rate (₹ / quintal)"
-                  placeholder="5000"
-                  type="number"
-                  min="100"
-                  value={expectedPrice}
-                  onChange={(e) => setExpectedPrice(Number(e.target.value))}
-                  suffix="₹/q"
-                  required
-                />
-
-                <Input
-                  label="Farmgate Location / Cluster"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g. Mumbai, Maharashtra"
-                  icon={MapPin}
-                  required
-                />
-              </div>
-
-              {/* 4. Dates */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  label="Available / Ready Harvest Date"
-                  type="date"
-                  value={deliveryDate}
-                  onChange={(e) => setDeliveryDate(e.target.value)}
-                  icon={Calendar}
-                  required
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                loading={listingProduce}
-                className="w-full font-semibold shadow-xs"
-                icon={Plus}
-              >
-                List Produce on KIRAN
-              </Button>
-            </form>
-          </Card>
-
-          {/* My Listed Produce Section */}
-          <Card className="stagger-block border-gray-200/90">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-100">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">
-                  My Active Produce Listings
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Real-time database records of your agricultural lots
-                </p>
-              </div>
-              <Badge variant="emerald">{myProduce.length} Lots Listed</Badge>
-            </div>
-
-            {loadingProduce ? (
-              <LoadingState message="Loading your produce listings..." />
-            ) : myProduce.length === 0 ? (
-              <EmptyState
-                title="No Produce Listed Yet"
-                description="List your current harvest using the form above to connect with institutional buyers."
-                icon={Package}
-              />
-            ) : (
-              <div className="divide-y divide-gray-100">
-                {myProduce.map((item) => (
-                  <div key={item.id} className="py-3.5 flex items-center justify-between gap-3">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-gray-900">{item.crop_name}</span>
-                        <StatusBadge status={item.status} />
-                        {item.quality_grade && (
-                          <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
-                            {item.quality_grade}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {item.quantity} {item.unit} • {item.location || "Farmgate"}
-                        {item.available_from && ` • Ready: ${item.available_from.split("T")[0]}`}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteProduce(item.id)}
-                      title="Delete Listing"
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        </div>
-
-        {/* Right Column: Real-time Lot Valuation & Open Buyer Requirements (5 cols on lg) */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Real-time Lot Valuation Card */}
-          <Card className="stagger-block bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200">
-            <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
-                  <Sparkles size={16} />
-                </div>
-                <span className="font-bold text-sm text-gray-900">
-                  Live Lot Valuation
-                </span>
-              </div>
-              <Badge variant="emerald">Auto Calculating</Badge>
-            </div>
-
-            <div className="py-4 space-y-3">
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <span className="text-gray-500">Produce Lot:</span>
-                <span className="font-bold text-gray-900">
-                  {crop} • {quantity} {unit} ({grade})
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <span className="text-gray-500">Origin / Location:</span>
-                <span className="font-medium text-gray-700">
-                  {location || "Indore, Madhya Pradesh"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs sm:text-sm">
-                <span className="text-gray-500">Target Rate:</span>
-                <span className="font-semibold text-gray-800">
-                  ₹{expectedPrice.toLocaleString()} / quintal
-                </span>
-              </div>
-
-              <div className="pt-3 border-t border-emerald-100 flex items-baseline justify-between">
-                <div>
-                  <span className="text-xs text-gray-500 block">
-                    Estimated Gross Realization
-                  </span>
-                  <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700">
-                    ₹{estimatedTotalValue.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Open Buyer Requirements for Selected Crop */}
-          <Card className="stagger-block border-gray-200/90">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-100">
-              <div>
-                <h3 className="text-base font-bold text-gray-900">
-                  Active Buyer Requirements ({crop})
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Direct commercial procurement orders in MySQL
-                </p>
-              </div>
-              <Badge variant="emerald">{openRequirements.length} Active</Badge>
-            </div>
-
-            {loadingReqs ? (
-              <LoadingState message="Scanning open buyer orders..." />
-            ) : openRequirements.length === 0 ? (
-              <EmptyState
-                title={`No Open Requirements for ${crop}`}
-                description="Your produce listing is active and discoverable. When institutional buyers post matching requirements, they will appear here."
-              />
-            ) : (
-              <div className="space-y-3">
-                {openRequirements.map((req) => (
-                  <div
-                    key={req.id}
-                    className="p-3.5 sm:p-4 rounded-xl border border-gray-200 bg-white hover:border-emerald-300 transition-all space-y-2.5"
+                  <Select
+                    label="Quality / Grade"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    required
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-gray-900 text-sm">
-                          {req.buyer_name || "Verified Buyer"}
-                        </h4>
-                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                          <MapPin size={12} className="text-gray-400" />
-                          {req.location || "Location on file"}
-                          {req.required_by && ` • Need by ${req.required_by.split("T")[0]}`}
-                        </p>
-                      </div>
+                    <option value="Grade A">Grade A</option>
+                    <option value="Grade B">Grade B</option>
+                    <option value="Grade C">Grade C</option>
+                  </Select>
+                </div>
 
-                      <div className="text-right shrink-0">
-                        {req.max_price && (
-                          <span className="text-base font-bold text-emerald-700 block">
-                            Up to ₹{req.max_price}
-                          </span>
-                        )}
-                        <span className="text-[11px] text-gray-500">
-                          Qty: <strong>{req.quantity} {req.unit}</strong>
-                        </span>
-                      </div>
-                    </div>
+                {/* 2. Quantity & Target Rate */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                      Quantity <span className="text-red-500">*</span>
+                    </label>
 
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                      <span className="text-xs text-gray-500 font-medium">
-                        Grade: {req.quality_grade || "Any Standard"}
-                      </span>
-                      <Button
-                        size="xs"
-                        variant="primary"
-                        onClick={() => handleOpenOfferModal(req)}
-                        icon={ArrowRight}
+                    <div className="flex w-full overflow-hidden rounded-lg border border-gray-300 bg-white">
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={quantity}
+                        onChange={(e) => setQuantity(Number(e.target.value))}
+                        placeholder="2700"
+                        required
+                        className="min-w-0 flex-1 px-3 py-2.5 text-sm outline-none"
+                      />
+
+                      <select
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        className="w-20 shrink-0 border-l border-gray-200 bg-white px-1 py-2.5 text-sm outline-none"
                       >
-                        Send Offer
-                      </Button>
+                        <option value="kg">kg</option>
+                        <option value="quintal">quintal</option>
+                      </select>
                     </div>
                   </div>
-                ))}
+
+                  <Input
+                    label="Target Quoted Rate (₹ / quintal)"
+                    placeholder="5000"
+                    type="number"
+                    min="100"
+                    value={expectedPrice}
+                    onChange={(e) => setExpectedPrice(Number(e.target.value))}
+                    suffix="₹/q"
+                    required
+                  />
+                </div>
+
+                {/* 3. Farm Location & Harvest Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="Farmgate Location / Cluster"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. Mumbai, Maharashtra"
+                    icon={MapPin}
+                    required
+                  />
+
+                  <Input
+                    label="Available / Ready Harvest Date"
+                    type="date"
+                    value={deliveryDate}
+                    onChange={(e) => setDeliveryDate(e.target.value)}
+                    icon={Calendar}
+                    required
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="md"
+                  loading={listingProduce}
+                  className="w-full font-semibold shadow-xs"
+                  icon={Plus}
+                >
+                  List Produce on KIRAN
+                </Button>
+              </form>
+            </Card>
+
+          </div>
+
+          {/* Right Column: Real-time Lot Valuation & Open Buyer Requirements (5 cols on lg) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Real-time Lot Valuation Card */}
+            <Card className="stagger-block bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200">
+              <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
+                <div className="flex items-center gap-2">
+                  <div className="h-7 w-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+                    <Sparkles size={16} />
+                  </div>
+                  <span className="font-bold text-sm text-gray-900">
+                    Live Lot Valuation
+                  </span>
+                </div>
+                <Badge variant="emerald">Auto Calculating</Badge>
               </div>
-            )}
-          </Card>
+
+              <div className="py-4 space-y-3">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="text-gray-500">Produce Lot:</span>
+                  <span className="font-bold text-gray-900">
+                    {crop} • {quantity} {unit} ({grade})
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="text-gray-500">Origin / Location:</span>
+                  <span className="font-medium text-gray-700">
+                    {location || "Indore, Madhya Pradesh"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs sm:text-sm">
+                  <span className="text-gray-500">Target Rate:</span>
+                  <span className="font-semibold text-gray-800">
+                    ₹{expectedPrice.toLocaleString()} / quintal
+                  </span>
+                </div>
+
+                <div className="pt-3 border-t border-emerald-100 flex items-baseline justify-between">
+                  <div>
+                    <span className="text-xs text-gray-500 block">
+                      Estimated Gross Realization
+                    </span>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-emerald-700">
+                      ₹{estimatedTotalValue.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Available Buyer Requirements for Selected Crop */}
+            <Card className="stagger-block border-gray-200/90">
+              <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-100">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    Available Buyers{crop ? ` (${crop})` : ""}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Buyer requirements matching the crop you selected
+                  </p>
+                </div>
+                <Badge variant="emerald">
+                  {crop ? `${openRequirements.length} Active` : "Select Crop"}
+                </Badge>
+              </div>
+
+              {!crop ? (
+                <EmptyState
+                  title="Select a Crop"
+                  description="Choose a crop above to see active buyer requirements for that crop."
+                  icon={Package}
+                />
+              ) : loadingReqs ? (
+                <LoadingState message={`Finding buyers for ${crop}...`} />
+              ) : openRequirements.length === 0 ? (
+                <EmptyState
+                  title={`No Active Buyers for ${crop}`}
+                  description="No open buyer requirement is currently available for this crop."
+                  icon={Package}
+                />
+              ) : (
+                <div className="space-y-3">
+                  {openRequirements.map((req) => (
+                    <div
+                      key={req.id}
+                      className="p-3.5 rounded-xl border border-gray-200 bg-white hover:border-emerald-300 transition-all space-y-2.5"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-gray-900 text-sm">
+                            {req.buyer_name || "Verified Buyer"}
+                          </h4>
+                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                            <MapPin size={12} className="text-gray-400" />
+                            {req.location || "Location on file"}
+                            {req.required_by && ` • Need by ${req.required_by.split("T")[0]}`}
+                          </p>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          {req.max_price && (
+                            <span className="text-base font-bold text-emerald-700 block">
+                              Up to ₹{req.max_price}
+                            </span>
+                          )}
+                          <span className="text-[11px] text-gray-500">
+                            Qty: <strong>{req.quantity} {req.unit}</strong>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-xs text-gray-500 font-medium">
+                          Grade: {req.quality_grade || "Any Standard"}
+                        </span>
+                        <Button
+                          size="xs"
+                          variant="primary"
+                          onClick={() => handleOpenOfferModal(req)}
+                          icon={ArrowRight}
+                        >
+                          Send Offer
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Offer Submission Modal */}
       {selectedReq && (

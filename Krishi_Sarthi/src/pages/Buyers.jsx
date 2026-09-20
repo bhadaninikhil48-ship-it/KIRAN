@@ -29,6 +29,9 @@ export function Buyers() {
   const [cropFilter, setCropFilter] = useState("All");
   const [sortBy, setSortBy] = useState("priceDesc");
 
+  const [farmerProduce, setFarmerProduce] = useState([]);
+  const [produceLoading, setProduceLoading] = useState(true);
+
   // Offer modal states
   const [selectedBuyer, setSelectedBuyer] = useState(null);
   const [offerModalOpen, setOfferModalOpen] = useState(false);
