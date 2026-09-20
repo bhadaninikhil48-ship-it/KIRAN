@@ -1029,6 +1029,8 @@ export function MarketIntelligence() {
               district={selectedTrendRow.district}
               market={selectedTrendRow.market}
               commodity={selectedTrendRow.commodity}
+              variety={selectedTrendRow.variety}
+              grade={selectedTrendRow.grade}
             />
 
           </div>

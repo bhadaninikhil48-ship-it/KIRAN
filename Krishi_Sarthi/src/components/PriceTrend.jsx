@@ -191,12 +191,13 @@ import {
 import "./PriceTrend.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 function PriceTrend({
     state = "Gujarat",
     district = "Rajkot",
     market = "Rajkot APMC",
     commodity = "Ground Nut Seed",
+    variety = "",
+    grade = "",
 }) {
 
 
@@ -217,7 +218,10 @@ function PriceTrend({
                     `?state=${encodeURIComponent(state)}` +
                     `&district=${encodeURIComponent(district)}` +
                     `&market=${encodeURIComponent(market)}` +
-                    `&commodity=${encodeURIComponent(commodity)}`;
+                    `&commodity=${encodeURIComponent(commodity)}` +
+                    `&variety=${encodeURIComponent(variety)}` +
+                    `&grade=${encodeURIComponent(grade)}`;
+
 
                 const response = await fetch(url);
 
@@ -260,7 +264,7 @@ function PriceTrend({
 
         fetchPriceHistory();
 
-    }, [state, district, market, commodity]);
+    }, [state, district, market, commodity, variety, grade]);
 
 
     if (loading) {
