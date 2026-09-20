@@ -1,564 +1,3 @@
-// import db from "../config/db.js";
-
-// const BASE_URL =
-//     "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070";
-
-// const DISTRICT_API =
-//     "https://aniket-thapa.github.io/india-pincode-api/states";
-
-
-// // All states
-// const states = [
-//     "Andhra Pradesh",
-//     "Arunachal Pradesh",
-//     "Assam",
-//     "Bihar",
-//     "Chhattisgarh",
-//     "Goa",
-//     "Gujarat",
-//     "Haryana",
-//     "Himachal Pradesh",
-//     "Jharkhand",
-//     "Karnataka",
-//     "Kerala",
-//     "Madhya Pradesh",
-//     "Maharashtra",
-//     "Manipur",
-//     "Meghalaya",
-//     "Mizoram",
-//     "Nagaland",
-//     "Odisha",
-//     "Punjab",
-//     "Rajasthan",
-//     "Sikkim",
-//     "Tamil Nadu",
-//     "Telangana",
-//     "Tripura",
-//     "Uttar Pradesh",
-//     "Uttarakhand",
-//     "West Bengal"
-// ];
-
-
-// // -----------------------------------------
-// // WAIT FUNCTION
-// // -----------------------------------------
-
-// const wait = (ms) => {
-//     return new Promise(resolve => {
-//         setTimeout(resolve, ms);
-//     });
-// };
-
-
-// // -----------------------------------------
-// // API FETCH WITH RETRY
-// // -----------------------------------------
-
-// const fetchWithRetry = async (
-//     url,
-//     label,
-//     maxRetries = 4
-// ) => {
-
-//     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-
-//         try {
-
-//             const response = await fetch(url);
-
-//             // Success
-//             if (response.ok) {
-//                 return response;
-//             }
-
-
-//             // Rate limit
-//             if (response.status === 429) {
-
-//                 let retryAfter =
-//                     response.headers.get("retry-after");
-
-//                 let delay;
-
-//                 if (retryAfter) {
-
-//                     delay =
-//                         Number(retryAfter) * 1000;
-
-//                 } else {
-
-//                     // 10s → 20s → 40s → 60s
-//                     delay =
-//                         Math.min(
-//                             10000 * Math.pow(2, attempt - 1),
-//                             60000
-//                         );
-//                 }
-
-//                 console.log(
-//                     `429 → ${label}`
-//                 );
-
-//                 console.log(
-//                     `Waiting ${delay / 1000}s before retry ${attempt}/${maxRetries}`
-//                 );
-
-//                 await wait(delay);
-
-//                 continue;
-//             }
-
-
-//             // Other HTTP error
-//             throw new Error(
-//                 `API ${response.status}`
-//             );
-
-//         } catch (error) {
-
-//             console.error(
-//                 `${label} → attempt ${attempt}/${maxRetries} failed:`,
-//                 error.message
-//             );
-
-//             if (attempt < maxRetries) {
-
-//                 const delay =
-//                     Math.min(
-//                         5000 * attempt,
-//                         30000
-//                     );
-
-//                 await wait(delay);
-
-//             } else {
-
-//                 throw error;
-//             }
-//         }
-//     }
-
-//     throw new Error(
-//         `Maximum retries reached → ${label}`
-//     );
-// };
-
-
-// // -----------------------------------------
-// // STATE SLUG
-// // -----------------------------------------
-
-// const getStateSlug = (state) => {
-
-//     return state
-//         .toLowerCase()
-//         .replace(/\s+/g, "-");
-// };
-
-
-// // -----------------------------------------
-// // SAVE RECORDS
-// // -----------------------------------------
-
-// const saveRecords = async (records) => {
-
-//     let saved = 0;
-
-//     for (const record of records) {
-
-//         let arrivalDate = null;
-
-//         if (record.arrival_date) {
-
-//             const [day, month, year] =
-//                 record.arrival_date.split("/");
-
-//             arrivalDate =
-//                 `${year}-${month}-${day}`;
-//         }
-
-//         try {
-
-//             await db.execute(
-//                 `
-//                 INSERT IGNORE INTO market_price_history
-//                 (
-//                     state,
-//                     district,
-//                     market,
-//                     commodity,
-//                     variety,
-//                     grade,
-//                     min_price,
-//                     max_price,
-//                     modal_price,
-//                     arrival_date
-//                 )
-//                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//                 `,
-//                 [
-//                     record.state || "",
-//                     record.district || "",
-//                     record.market || "",
-//                     record.commodity || "",
-//                     record.variety || "",
-//                     record.grade || "",
-//                     record.min_price || null,
-//                     record.max_price || null,
-//                     record.modal_price || null,
-//                     arrivalDate
-//                 ]
-//             );
-
-//             saved++;
-
-//         } catch (error) {
-
-//             console.error(
-//                 "Database save error:",
-//                 error.message
-//             );
-//         }
-//     }
-
-//     return saved;
-// };
-
-
-// // -----------------------------------------
-// // FETCH DISTRICT DATA
-// // -----------------------------------------
-
-// const fetchDistrictData = async (
-//     state,
-//     district
-// ) => {
-
-//     const limit = 100;
-
-//     let offset = 0;
-//     let totalRecords = 0;
-
-
-//     while (true) {
-
-//         const url =
-//             `${BASE_URL}` +
-//             `?api-key=${process.env.MY_KEY}` +
-//             `&format=json` +
-//             `&offset=${offset}` +
-//             `&limit=${limit}` +
-//             `&filters%5Bstate.keyword%5D=${encodeURIComponent(state)}` +
-//             `&filters%5Bdistrict%5D=${encodeURIComponent(district)}`;
-
-
-//         try {
-
-//             console.log(
-//                 `Fetching → ${state} → ${district} → offset ${offset}`
-//             );
-
-
-//             const response =
-//                 await fetchWithRetry(
-//                     url,
-//                     `${state} → ${district}`
-//                 );
-
-
-//             const data =
-//                 await response.json();
-
-
-//             const records =
-//                 data.records || [];
-
-
-//             if (records.length === 0) {
-
-//                 break;
-//             }
-
-
-//             const saved =
-//                 await saveRecords(records);
-
-
-//             totalRecords += saved;
-
-
-//             console.log(
-//                 `${state} → ${district} → ${records.length} records received`
-//             );
-
-
-//             offset += limit;
-
-
-//             if (records.length < limit) {
-
-//                 break;
-//             }
-
-//         } catch (error) {
-
-//             console.error(
-//                 `District failed → ${state} → ${district}:`,
-//                 error.message
-//             );
-
-//             // Important:
-//             // Don't stop entire cycle.
-//             break;
-//         }
-//     }
-
-
-//     return totalRecords;
-// };
-
-
-// // -----------------------------------------
-// // GET DISTRICTS
-// // -----------------------------------------
-
-// const getDistricts = async (state) => {
-
-//     try {
-
-//         const stateSlug =
-//             getStateSlug(state);
-
-
-//         const url =
-//             `${DISTRICT_API}/${stateSlug}.json`;
-
-
-//         console.log(
-//             `Checking districts → ${state}`
-//         );
-
-
-//         const response =
-//             await fetchWithRetry(
-//                 url,
-//                 `District list → ${state}`
-//             );
-
-
-//         const data =
-//             await response.json();
-
-
-//         return data.districts || [];
-
-//     } catch (error) {
-
-//         console.error(
-//             `District list failed → ${state}:`,
-//             error.message
-//         );
-
-//         return [];
-//     }
-// };
-
-
-// // -----------------------------------------
-// // CHECK STATE DATA
-// // -----------------------------------------
-
-// const checkStateData = async (state) => {
-
-//     try {
-
-//         const url =
-//             `${BASE_URL}` +
-//             `?api-key=${process.env.MY_KEY}` +
-//             `&format=json` +
-//             `&offset=0` +
-//             `&limit=1` +
-//             `&filters%5Bstate.keyword%5D=${encodeURIComponent(state)}`;
-
-
-//         console.log(
-//             `Checking state → ${state}`
-//         );
-
-
-//         const response =
-//             await fetchWithRetry(
-//                 url,
-//                 `State check → ${state}`
-//             );
-
-
-//         const data =
-//             await response.json();
-
-
-//         return (
-//             data.records &&
-//             data.records.length > 0
-//         );
-
-//     } catch (error) {
-
-//         console.error(
-//             `State check failed → ${state}:`,
-//             error.message
-//         );
-
-//         return false;
-//     }
-// };
-
-
-// // -----------------------------------------
-// // ONE COMPLETE CYCLE
-// // -----------------------------------------
-
-// const fetchAndSavePrices = async () => {
-
-//     console.log(
-//         "\n======================================"
-//     );
-
-//     console.log(
-//         "STARTING NEW PRICE COLLECTION CYCLE"
-//     );
-
-//     console.log(
-//         "======================================\n"
-//     );
-
-
-//     let totalSaved = 0;
-
-
-//     for (const state of states) {
-
-//         console.log(
-//             `\n========== STATE: ${state} ==========`
-//         );
-
-
-//         // STEP 1
-//         // Check state first
-
-//         const stateHasData =
-//             await checkStateData(state);
-
-
-//         if (!stateHasData) {
-
-//             console.log(
-//                 `No data available → ${state}`
-//             );
-
-//             console.log(
-//                 `Skipping all districts of ${state}`
-//             );
-
-//             continue;
-//         }
-
-
-//         // STEP 2
-//         // Get districts
-
-//         const districts =
-//             await getDistricts(state);
-
-
-//         if (districts.length === 0) {
-
-//             console.log(
-//                 `No districts found → ${state}`
-//             );
-
-//             continue;
-//         }
-
-
-//         console.log(
-//             `${districts.length} districts found → ${state}`
-//         );
-
-
-//         // STEP 3
-//         // Process districts sequentially
-
-//         for (const district of districts) {
-
-//             const saved =
-//                 await fetchDistrictData(
-//                     state,
-//                     district.name
-//                 );
-
-
-//             totalSaved += saved;
-
-
-//             console.log(
-//                 `Completed → ${state} → ${district.name}`
-//             );
-//         }
-
-
-//         console.log(
-//             `========== ${state} COMPLETE ==========`
-//         );
-//     }
-
-
-//     console.log(
-//         "\n======================================"
-//     );
-
-//     console.log(
-//         `CYCLE COMPLETE → ${totalSaved} records processed`
-//     );
-
-//     console.log(
-//         "Waiting 60 seconds before next cycle..."
-//     );
-
-//     console.log(
-//         "======================================\n"
-//     );
-
-
-//     // Small cooldown before next cycle
-//     await wait(60000);
-
-
-//     // Start next cycle
-//     fetchAndSavePrices();
-// };
-
-
-// // -----------------------------------------
-// // START COLLECTOR
-// // -----------------------------------------
-
-// fetchAndSavePrices();
-
-
-// export default fetchAndSavePrices;
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -751,7 +190,6 @@ const fetchWithRetry = async (
     const isPriceApi =
         url.startsWith(BASE_URL);
 
-
     for (
         let attempt = 1;
         attempt <= maxAttempts;
@@ -767,7 +205,6 @@ const fetchWithRetry = async (
             const remaining =
                 getRemainingCooldown();
 
-
             if (remaining > 0) {
 
                 console.log("");
@@ -781,12 +218,10 @@ const fetchWithRetry = async (
             }
         }
 
-
         try {
 
             const response =
                 await fetch(url);
-
 
             // ==================================
             // SUCCESS
@@ -809,7 +244,6 @@ const fetchWithRetry = async (
                 return response;
             }
 
-
             // ==================================
             // 429 RATE LIMIT
             // ==================================
@@ -824,69 +258,76 @@ const fetchWithRetry = async (
                     `429 → ${label}`
                 );
 
-
-                // API ke Retry-After header ko
-                // priority denge
                 const retryAfter =
                     response.headers.get(
                         "retry-after"
                     );
 
-
                 let cooldownSeconds;
-
 
                 if (retryAfter) {
 
                     const retryValue =
                         Number(retryAfter);
 
-
                     cooldownSeconds =
-                        Number.isFinite(
-                            retryValue
-                        ) &&
+                        Number.isFinite(retryValue) &&
                             retryValue > 0
                             ? retryValue
                             : 60;
 
                 } else {
 
-                    // Fallback cooldown
                     cooldownSeconds = 60;
                 }
 
-
                 startApiCooldown(
                     cooldownSeconds
-                );
-
-
-                console.log("");
-                console.log(
-                    `429 received for → ${label}`
                 );
 
                 console.log(
                     "Same request will be retried after cooldown."
                 );
 
+                await wait(
+                    cooldownSeconds * 1000
+                );
 
-                // ==================================
-                // IMPORTANT:
-                // SAME URL / SAME DISTRICT RETRY
-                // ==================================
+                continue;
+            }
+
+            // ==================================
+            // TEMPORARY SERVER ERRORS
+            // ==================================
+
+            if (
+                isPriceApi &&
+                (
+                    response.status === 408 ||
+                    response.status === 500 ||
+                    response.status === 502 ||
+                    response.status === 503 ||
+                    response.status === 504
+                )
+            ) {
+
+                console.log("");
+                console.log(
+                    `Temporary API error ${response.status} → ${label}`
+                );
+
+                const cooldownSeconds = 60;
+
+                startApiCooldown(
+                    cooldownSeconds
+                );
 
                 await wait(
                     cooldownSeconds * 1000
                 );
 
-
-                // Cooldown khatam hone ke baad
-                // SAME attempt/request dobara
                 continue;
             }
-
 
             // ==================================
             // OTHER HTTP ERROR
@@ -896,7 +337,6 @@ const fetchWithRetry = async (
                 `API ${response.status}`
             );
 
-
         } catch (error) {
 
             console.error(
@@ -904,22 +344,70 @@ const fetchWithRetry = async (
                 error.message
             );
 
+            // ==================================
+            // NETWORK / TIMEOUT / FETCH FAILED
+            // ==================================
 
-            // 429 ko upar already handle kiya hai.
-            // Yahan sirf normal errors ke retry honge.
+            if (
+                isPriceApi &&
+                (
+                    error.name === "AbortError" ||
+                    error.message === "fetch failed" ||
+                    error.message.includes(
+                        "ECONNRESET"
+                    ) ||
+                    error.message.includes(
+                        "ETIMEDOUT"
+                    ) ||
+                    error.message.includes(
+                        "ENOTFOUND"
+                    )
+                )
+            ) {
 
-            if (attempt < maxAttempts) {
+                const cooldownSeconds = 60;
+
+                console.log("");
+                console.log(
+                    "DATA.GOV.IN API NETWORK FAILURE"
+                );
+
+                console.log(
+                    `Global cooldown → ${cooldownSeconds} seconds`
+                );
+
+                startApiCooldown(
+                    cooldownSeconds
+                );
+
+                if (
+                    attempt < maxAttempts
+                ) {
+
+                    await wait(
+                        cooldownSeconds * 1000
+                    );
+
+                    continue;
+                }
+            }
+
+            // ==================================
+            // NORMAL RETRY
+            // ==================================
+
+            if (
+                attempt < maxAttempts
+            ) {
 
                 const waitTime =
                     attempt === 1
-                        ? 10000
-                        : 20000;
-
+                        ? RETRY_WAIT
+                        : RETRY_WAIT * 2;
 
                 console.log(
-                    `Waiting ${waitTime / 1000}s before retry ${attempt}/${maxAttempts}`
+                    `Waiting ${waitTime / 1000}s before retry ${attempt + 1}/${maxAttempts}`
                 );
-
 
                 await wait(waitTime);
 
@@ -930,11 +418,12 @@ const fetchWithRetry = async (
         }
     }
 
-
     throw new Error(
         `Maximum attempts reached → ${label}`
     );
 };
+
+
 
 // ==========================================
 // SAVE SINGLE RECORD
@@ -1555,23 +1044,37 @@ const getApiLatestDate = async () => {
 // ==========================================
 // GET API RECORD COUNT
 // ==========================================
+// ==========================================
+// GET TODAY API RECORD COUNT
+// ==========================================
 
-const getApiRecordCount = async () => {
+const getTodayApiRecordCount = async () => {
 
     try {
+
+        const today = getTodayIST();
+
+        // API arrival_date format → DD/MM/YYYY
+        const [year, month, day] =
+            today.split("-");
+
+        const apiDate =
+            `${day}/${month}/${year}`;
+
 
         const url =
             `${BASE_URL}` +
             `?api-key=${process.env.MY_KEY}` +
             `&format=json` +
             `&offset=0` +
-            `&limit=1`;
+            `&limit=1` +
+            `&filters%5Barrival_date%5D=${encodeURIComponent(apiDate)}`;
 
 
         const response =
             await fetchWithRetry(
                 url,
-                "API record count check"
+                "Today's API record count check"
             );
 
 
@@ -1586,7 +1089,7 @@ const getApiRecordCount = async () => {
     } catch (error) {
 
         console.error(
-            "API record count failed:",
+            "Today's API record count failed:",
             error.message
         );
 
@@ -1628,8 +1131,6 @@ const getDbRecordCount = async (date) => {
         return null;
     }
 };
-
-
 // ==========================================
 // START COLLECTOR
 // ==========================================
@@ -1641,43 +1142,113 @@ const startCollector = async () => {
     console.log("PRICE COLLECTOR STARTED");
     console.log("######################################");
 
-
-    let collectedDate = null;
-
-    let baselineApiCount = null;
-
-    let stableChecks = 0;
-
-    let dayCollectionComplete = false;
-
-    let lastNightRefreshDate = null;
+    console.log(
+        "Background collection window → 11 PM to 1 AM"
+    );
 
 
     while (true) {
 
+        const now = new Date();
+
+        const hour =
+            Number(
+                new Intl.DateTimeFormat(
+                    "en-IN",
+                    {
+                        timeZone: "Asia/Kolkata",
+                        hour: "2-digit",
+                        hour12: false
+                    }
+                ).format(now)
+            );
+
+
         // ======================================
-        // 1. CURRENT API DATE
+        // COLLECTION WINDOW
+        // 11 PM → 1 AM
         // ======================================
 
-        const apiDate =
-            await getApiLatestDate();
+        const isCollectionWindow =
+            hour >= 23 || hour < 1;
 
 
-        if (!apiDate) {
+        // ======================================
+        // OUTSIDE COLLECTION WINDOW
+        // ======================================
+
+        if (!isCollectionWindow) {
 
             console.log("");
             console.log(
-                "API date unavailable."
+                "Collector sleeping..."
             );
 
             console.log(
-                `Retrying after ${NEW_DAY_CHECK_INTERVAL / 60000
-                } minutes.`
+                "Next collection window → 11 PM"
+            );
+
+            // Check again after 30 minutes
+            await wait(
+                30 * 60 * 1000
+            );
+
+            continue;
+        }
+
+
+        // ======================================
+        // 11 PM - 1 AM
+        // CHECK FOR NEW DATA
+        // ======================================
+
+        console.log("");
+        console.log("======================================");
+        console.log("COLLECTION WINDOW ACTIVE");
+        console.log("Checking for new data...");
+        console.log("======================================");
+
+
+        const today =
+            getTodayIST();
+
+
+        const apiCount =
+            await getTodayApiRecordCount();
+
+
+        if (apiCount === null) {
+
+            console.log(
+                "Unable to check today's API data."
+            );
+
+            console.log(
+                "No collection started."
+            );
+
+            await wait(
+                15 * 60 * 1000
+            );
+
+            continue;
+        }
+
+
+        const dbCount =
+            await getDbRecordCount(
+                today
             );
 
 
+        if (dbCount === null) {
+
+            console.log(
+                "Unable to check today's DB data."
+            );
+
             await wait(
-                NEW_DAY_CHECK_INTERVAL
+                15 * 60 * 1000
             );
 
             continue;
@@ -1686,712 +1257,191 @@ const startCollector = async () => {
 
         console.log("");
         console.log(
-            `API latest date → ${apiDate}`
+            "========== TODAY DATA CHECK =========="
+        );
+
+        console.log(
+            `API records → ${apiCount}`
+        );
+
+        console.log(
+            `DB records  → ${dbCount}`
+        );
+
+        console.log(
+            "======================================"
         );
 
 
         // ======================================
-        // 2. FIRST RUN
+        // NO NEW DATA
         // ======================================
 
-        if (!collectedDate) {
-
-            collectedDate = apiDate;
-
+        if (apiCount <= dbCount) {
 
             console.log("");
             console.log(
-                `Starting collection for → ${collectedDate}`
-            );
-
-
-            const result =
-                await runFullCollection(
-                    "FIRST FULL"
-                );
-
-
-            if (!result.success) {
-
-                console.log("");
-                console.log(
-                    "FIRST COLLECTION INCOMPLETE"
-                );
-
-                console.log(
-                    "Some districts failed."
-                );
-
-                console.log(
-                    "Retrying after 10 minutes..."
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            baselineApiCount =
-                await getApiRecordCount();
-
-
-            if (
-                baselineApiCount === null
-            ) {
-
-                console.log(
-                    "Unable to get API record count."
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            const dbCount =
-                await getDbRecordCount(
-                    collectedDate
-                );
-
-
-            console.log("");
-            console.log(
-                "========== INITIAL COUNT =========="
+                "NO NEW DATA AVAILABLE."
             );
 
             console.log(
-                `API records → ${baselineApiCount}`
+                "Collection will NOT start."
             );
 
             console.log(
-                `DB records  → ${dbCount}`
-            );
-
-            console.log(
-                "==================================="
-            );
-
-
-            if (
-                dbCount === null ||
-                dbCount < baselineApiCount
-            ) {
-
-                console.log("");
-                console.log(
-                    "DB count is less than API count."
-                );
-
-                console.log(
-                    "Collection is NOT complete."
-                );
-
-                continue;
-            }
-
-
-            stableChecks = 0;
-
-            dayCollectionComplete = false;
-
-            continue;
-        }
-
-
-        // ======================================
-        // 3. NEW DAY
-        // ======================================
-
-        if (
-            apiDate > collectedDate
-        ) {
-
-            console.log("");
-            console.log(
-                "======================================"
-            );
-
-            console.log(
-                `NEW DAY DETECTED → ${apiDate}`
-            );
-
-            console.log(
-                "======================================"
-            );
-
-
-            collectedDate = apiDate;
-
-            baselineApiCount = null;
-
-            stableChecks = 0;
-
-            dayCollectionComplete = false;
-
-
-            const result =
-                await runFullCollection(
-                    "NEW DAY FULL"
-                );
-
-
-            if (!result.success) {
-
-                console.log(
-                    "NEW DAY COLLECTION INCOMPLETE"
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            baselineApiCount =
-                await getApiRecordCount();
-
-
-            if (
-                baselineApiCount === null
-            ) {
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            const dbCount =
-                await getDbRecordCount(
-                    collectedDate
-                );
-
-
-            console.log("");
-            console.log(
-                "========== NEW DAY COUNT =========="
-            );
-
-            console.log(
-                `API records → ${baselineApiCount}`
-            );
-
-            console.log(
-                `DB records  → ${dbCount}`
-            );
-
-            console.log(
-                "==================================="
-            );
-
-
-            if (
-                dbCount === null ||
-                dbCount < baselineApiCount
-            ) {
-
-                console.log(
-                    "DB count is less than API count."
-                );
-
-                console.log(
-                    "Collection is incomplete."
-                );
-
-                continue;
-            }
-
-
-            continue;
-        }
-
-
-        // ======================================
-        // 4. CURRENT DAY NOT COMPLETE
-        // ======================================
-
-        if (
-            apiDate === collectedDate &&
-            !dayCollectionComplete
-        ) {
-
-            console.log("");
-            console.log(
-                "--------------------------------------"
-            );
-
-            console.log(
-                `VERIFICATION CHECK → ${stableChecks + 1
-                }/${REQUIRED_STABLE_CHECKS}`
-            );
-
-            console.log(
-                `Date → ${collectedDate}`
-            );
-
-            console.log(
-                "--------------------------------------"
-            );
-
-
-            const currentApiCount =
-                await getApiRecordCount();
-
-
-            if (
-                currentApiCount === null
-            ) {
-
-                console.log(
-                    "Unable to get current API count."
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            const currentDbCount =
-                await getDbRecordCount(
-                    collectedDate
-                );
-
-
-            if (
-                currentDbCount === null
-            ) {
-
-                console.log(
-                    "Unable to get DB count."
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            console.log("");
-
-            console.log(
-                `Previous API count → ${baselineApiCount}`
-            );
-
-            console.log(
-                `Current API count  → ${currentApiCount}`
-            );
-
-            console.log(
-                `Current DB count   → ${currentDbCount}`
-            );
-
-
-            // ==================================
-            // CASE 1:
-            // NEW DATA
-            // ==================================
-
-            if (
-                currentApiCount >
-                baselineApiCount
-            ) {
-
-                console.log("");
-                console.log(
-                    "NEW DATA DETECTED!"
-                );
-
-                console.log(
-                    `${baselineApiCount} → ${currentApiCount}`
-                );
-
-                console.log(
-                    "Running full collection..."
-                );
-
-
-                const result =
-                    await runFullCollection(
-                        "NEW DATA COLLECTION"
-                    );
-
-
-                if (!result.success) {
-
-                    console.log(
-                        "Collection incomplete."
-                    );
-
-
-                    await wait(
-                        VERIFICATION_WAIT
-                    );
-
-                    continue;
-                }
-
-
-                baselineApiCount =
-                    currentApiCount;
-
-                stableChecks = 0;
-
-
-                console.log(
-                    `New baseline → ${baselineApiCount}`
-                );
-
-                console.log(
-                    "Stable counter reset → 0"
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            // ==================================
-            // CASE 2:
-            // DB DATA MISSING
-            // ==================================
-
-            if (
-                currentDbCount <
-                currentApiCount
-            ) {
-
-                console.log("");
-                console.log(
-                    "DATABASE DATA MISSING!"
-                );
-
-                console.log(
-                    `API → ${currentApiCount}`
-                );
-
-                console.log(
-                    `DB  → ${currentDbCount}`
-                );
-
-                console.log(
-                    "Running recovery collection..."
-                );
-
-
-                const result =
-                    await runFullCollection(
-                        "DATABASE RECOVERY"
-                    );
-
-
-                if (!result.success) {
-
-                    console.log(
-                        "Recovery incomplete."
-                    );
-
-
-                    await wait(
-                        VERIFICATION_WAIT
-                    );
-
-                    continue;
-                }
-
-
-                stableChecks = 0;
-
-
-                console.log(
-                    "Missing data restored/checked."
-                );
-
-                console.log(
-                    "Stable counter reset → 0"
-                );
-
-
-                await wait(
-                    VERIFICATION_WAIT
-                );
-
-                continue;
-            }
-
-
-            // ==================================
-            // CASE 3:
-            // COUNT SAME
-            // ==================================
-
-            if (
-                currentApiCount ===
-                baselineApiCount &&
-                currentDbCount >=
-                currentApiCount
-            ) {
-
-                const result =
-                    await runFullCollection(
-                        "STABILITY CHECK"
-                    );
-
-
-                if (!result.success) {
-
-                    console.log(
-                        "Stability check incomplete."
-                    );
-
-                    stableChecks = 0;
-
-
-                    await wait(
-                        VERIFICATION_WAIT
-                    );
-
-                    continue;
-                }
-
-
-                const finalDbCount =
-                    await getDbRecordCount(
-                        collectedDate
-                    );
-
-
-                if (
-                    finalDbCount === null
-                ) {
-
-                    await wait(
-                        VERIFICATION_WAIT
-                    );
-
-                    continue;
-                }
-
-
-                if (
-                    finalDbCount >=
-                    currentApiCount
-                ) {
-
-                    stableChecks++;
-
-
-                    console.log("");
-
-                    console.log(
-                        `STABLE CHECK → ${stableChecks
-                        }/${REQUIRED_STABLE_CHECKS}`
-                    );
-
-
-                    if (
-                        stableChecks >=
-                        REQUIRED_STABLE_CHECKS
-                    ) {
-
-                        dayCollectionComplete =
-                            true;
-
-
-                        console.log("");
-
-                        console.log(
-                            "======================================"
-                        );
-
-                        console.log(
-                            "TODAY'S DATA CONFIRMED STABLE"
-                        );
-
-                        console.log(
-                            "3 CONSECUTIVE CHECKS PASSED"
-                        );
-
-                        console.log(
-                            `FINAL COUNT → ${finalDbCount}`
-                        );
-
-                        console.log(
-                            "FULL COLLECTION STOPPED FOR TODAY"
-                        );
-
-                        console.log(
-                            "======================================"
-                        );
-                    }
-
-                } else {
-
-                    console.log(
-                        "DB count dropped."
-                    );
-
-                    stableChecks = 0;
-
-                    console.log(
-                        "Stable counter reset → 0"
-                    );
-                }
-
-
-                if (
-                    !dayCollectionComplete
-                ) {
-
-                    await wait(
-                        VERIFICATION_WAIT
-                    );
-                }
-
-
-                continue;
-            }
-        }
-
-
-        // ======================================
-        // 5. TODAY COMPLETE
-        // ======================================
-
-        if (
-            apiDate === collectedDate &&
-            dayCollectionComplete
-        ) {
-
-            console.log("");
-            console.log(
-                `Today's collection already complete → ${collectedDate}`
-            );
-
-            console.log(
-                "Collector is in WAITING MODE."
-            );
-
-            console.log(
-                "No full collection needed."
-            );
-
-
-            const currentHour =
-                getCurrentHourIST();
-
-            const today =
-                getTodayIST();
-
-
-            // ==================================
-            // NIGHT REFRESH
-            // ==================================
-
-            if (
-                currentHour >=
-                NIGHT_REFRESH_HOUR &&
-                lastNightRefreshDate !== today
-            ) {
-
-                console.log("");
-
-                console.log(
-                    "======================================"
-                );
-
-                console.log(
-                    "NIGHT REFRESH STARTED"
-                );
-
-                console.log(
-                    `Date → ${today}`
-                );
-
-                console.log(
-                    "======================================"
-                );
-
-
-                const result =
-                    await runFullCollection(
-                        "NIGHT REFRESH"
-                    );
-
-
-                if (result.success) {
-
-                    console.log(
-                        "Night refresh completed successfully."
-                    );
-
-                } else {
-
-                    console.log(
-                        "Night refresh completed with failures."
-                    );
-                }
-
-
-                lastNightRefreshDate =
-                    today;
-
-
-                console.log(
-                    "Night refresh finished."
-                );
-
-                console.log(
-                    "Returning to WAITING MODE."
-                );
-
-
-                await wait(
-                    NEW_DAY_CHECK_INTERVAL
-                );
-
-                continue;
-            }
-
-
-            console.log(
-                `Next API date check in ${NEW_DAY_CHECK_INTERVAL / 60000
-                } minutes.`
+                "Checking again after 15 minutes..."
             );
 
 
             await wait(
-                NEW_DAY_CHECK_INTERVAL
+                15 * 60 * 1000
             );
 
             continue;
         }
+
+
+        // ======================================
+        // NEW DATA AVAILABLE
+        // ======================================
+
+        console.log("");
+        console.log(
+            "======================================"
+        );
+
+        console.log(
+            "NEW DATA DETECTED!"
+        );
+
+        console.log(
+            `API → ${apiCount}`
+        );
+
+        console.log(
+            `DB  → ${dbCount}`
+        );
+
+        console.log(
+            "Starting full collection..."
+        );
+
+        console.log(
+            "======================================"
+        );
+
+
+        // ======================================
+        // FULL COLLECTION
+        // ======================================
+
+        const result =
+            await runFullCollection(
+                "NIGHT COLLECTION"
+            );
+
+
+        // ======================================
+        // COLLECTION FINISHED
+        // ======================================
+
+        console.log("");
+        console.log(
+            "======================================"
+        );
+
+        if (result.success) {
+
+            console.log(
+                "NIGHT COLLECTION COMPLETED"
+            );
+
+            console.log(
+                "Collector stopped for today."
+            );
+
+        } else {
+
+            console.log(
+                "NIGHT COLLECTION COMPLETED WITH FAILURES"
+            );
+
+            console.log(
+                "Remaining work will be checked again"
+            );
+
+            console.log(
+                "within the current 11 PM - 1 AM window."
+            );
+        }
+
+        console.log(
+            "======================================"
+        );
+
+
+        // ======================================
+        // IF COLLECTION SUCCESSFUL
+        // DON'T RUN AGAIN TODAY
+        // ======================================
+
+        if (result.success) {
+
+            const currentTime =
+                new Date();
+
+            const currentHour =
+                Number(
+                    new Intl.DateTimeFormat(
+                        "en-IN",
+                        {
+                            timeZone: "Asia/Kolkata",
+                            hour: "2-digit",
+                            hour12: false
+                        }
+                    ).format(currentTime)
+                );
+
+
+            if (
+                currentHour >= 23 ||
+                currentHour < 1
+            ) {
+
+                console.log("");
+                console.log(
+                    "Collection finished early."
+                );
+
+                console.log(
+                    "No more background collection today."
+                );
+
+                console.log(
+                    "Next cycle → Tomorrow 11 PM"
+                );
+
+
+                // Wait until next collection window
+                await wait(
+                    60 * 60 * 1000
+                );
+
+                continue;
+            }
+        }
+
+
+        // ======================================
+        // COLLECTION FAILED / INCOMPLETE
+        // CHECK AGAIN AFTER 15 MINUTES
+        // ======================================
+
+        await wait(
+            15 * 60 * 1000
+        );
     }
 };
-
 
 // ==========================================
 // START
