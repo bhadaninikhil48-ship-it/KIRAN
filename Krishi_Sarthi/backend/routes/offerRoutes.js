@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createOffer, getBuyerOffers, updateOfferStatus } from "../controllers/offerController.js";
+import { createOffer,getMyOffers, getBuyerOffers, updateOfferStatus } from "../controllers/offerController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
@@ -12,6 +12,13 @@ router.post(
     protect,
     allowRoles("farmer"),
     createOffer
+);
+
+router.get(
+    "/my",
+    protect,
+    allowRoles("farmer"),
+    getMyOffers
 );
 
 router.get(
