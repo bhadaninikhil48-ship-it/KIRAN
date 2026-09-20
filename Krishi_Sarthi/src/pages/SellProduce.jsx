@@ -39,6 +39,260 @@ const [deliveryDate, setDeliveryDate] = useState("");
   const [loadingReqs, setLoadingReqs] = useState(false);
   const [liveBenchmarkPrice, setLiveBenchmarkPrice] = useState(null);
 
+  // Same 250 crop options used in the marketplace crop filter
+  const cropOptions = [
+      { value: "Rice", label: "Rice (चावल)" },
+      { value: "Wheat", label: "Wheat (गेहूँ)" },
+      { value: "Potato", label: "Potato (आलू)" },
+      { value: "Onion", label: "Onion (प्याज़)" },
+      { value: "Tomato", label: "Tomato (टमाटर)" },
+      { value: "Soybean", label: "Soybean (सोयाबीन)" },
+      { value: "Maize", label: "Maize (मक्का)" },
+      { value: "Cotton", label: "Cotton (कपास)" },
+      { value: "Sugarcane", label: "Sugarcane (गन्ना)" },
+      { value: "Gram", label: "Gram (चना)" },
+      { value: "Tur", label: "Tur (अरहर)" },
+      { value: "Jowar", label: "Jowar (ज्वार)" },
+      { value: "Bajra", label: "Bajra (बाजरा)" },
+      { value: "Groundnut", label: "Groundnut (मूंगफली)" },
+      { value: "Chilli", label: "Chilli (मिर्च)" },
+      { value: "Banana", label: "Banana (केला)" },
+      { value: "Garlic", label: "Garlic (लहसुन)" },
+      { value: "Grapes", label: "Grapes (अंगूर)" },
+      { value: "Pomegranate", label: "Pomegranate (अनार)" },
+      { value: "Peas", label: "Peas (मटर)" },
+      { value: "Cabbage", label: "Cabbage (पत्तागोभी)" },
+      { value: "Cauliflower", label: "Cauliflower (फूलगोभी)" },
+      { value: "Carrot", label: "Carrot (गाजर)" },
+      { value: "Okra", label: "Okra (भिंडी)" },
+      { value: "Brinjal", label: "Brinjal (बैंगन)" },
+      { value: "Cucumber", label: "Cucumber (खीरा)" },
+      { value: "Pumpkin", label: "Pumpkin (कद्दू)" },
+      { value: "Bitter Gourd", label: "Bitter Gourd (करेला)" },
+      { value: "Bottle Gourd", label: "Bottle Gourd (लौकी)" },
+      { value: "Ridge Gourd", label: "Ridge Gourd (तुरई)" },
+      { value: "Green Chilli", label: "Green Chilli (हरी मिर्च)" },
+      { value: "Lady Finger", label: "Lady Finger (भिंडी)" },
+      { value: "Mango", label: "Mango (आम)" },
+      { value: "Papaya", label: "Papaya (पपीता)" },
+      { value: "Guava", label: "Guava (अमरूद)" },
+      { value: "Apple", label: "Apple (सेब)" },
+      { value: "Orange", label: "Orange (संतरा)" },
+      { value: "Lemon", label: "Lemon (नींबू)" },
+      { value: "Pineapple", label: "Pineapple (अनानास)" },
+      { value: "Watermelon", label: "Watermelon (तरबूज)" },
+      { value: "Muskmelon", label: "Muskmelon (खरबूजा)" },
+      { value: "Coconut", label: "Coconut (नारियल)" },
+      { value: "Cashew", label: "Cashew (काजू)" },
+      { value: "Almond", label: "Almond (बादाम)" },
+      { value: "Walnut", label: "Walnut (अखरोट)" },
+      { value: "Mustard", label: "Mustard (सरसों)" },
+      { value: "Sesame", label: "Sesame (तिल)" },
+      { value: "Sunflower", label: "Sunflower (सूरजमुखी)" },
+      { value: "Linseed", label: "Linseed (अलसी)" },
+      { value: "Castor", label: "Castor (अरंडी)" },
+      { value: "Safflower", label: "Safflower (कुसुम)" },
+      { value: "Tobacco", label: "Tobacco (तंबाकू)" },
+      { value: "Jute", label: "Jute (जूट)" },
+      { value: "Tea", label: "Tea (चाय)" },
+      { value: "Coffee", label: "Coffee (कॉफी)" },
+      { value: "Rubber", label: "Rubber (रबर)" },
+      { value: "Coriander", label: "Coriander (धनिया)" },
+      { value: "Cumin", label: "Cumin (जीरा)" },
+      { value: "Fennel", label: "Fennel (सौंफ)" },
+      { value: "Fenugreek", label: "Fenugreek (मेथी)" },
+      { value: "Ajwain", label: "Ajwain (अजवाइन)" },
+      { value: "Isabgol", label: "Isabgol (ईसबगोल)" },
+      { value: "Black Pepper", label: "Black Pepper (काली मिर्च)" },
+      { value: "Cardamom", label: "Cardamom (इलायची)" },
+      { value: "Turmeric", label: "Turmeric (हल्दी)" },
+      { value: "Ginger", label: "Ginger (अदरक)" },
+      { value: "Clove", label: "Clove (लौंग)" },
+      { value: "Cinnamon", label: "Cinnamon (दालचीनी)" },
+      { value: "Nutmeg", label: "Nutmeg (जायफल)" },
+      { value: "Tamarind", label: "Tamarind (इमली)" },
+      { value: "Drumstick", label: "Drumstick (सहजन)" },
+      { value: "Spinach", label: "Spinach (पालक)" },
+      { value: "Amaranthus", label: "Amaranthus (चौलाई)" },
+      { value: "Mint", label: "Mint (पुदीना)" },
+      { value: "Curry Leaves", label: "Curry Leaves (करी पत्ता)" },
+      { value: "Fenugreek Leaves", label: "Fenugreek Leaves (मेथी पत्ता)" },
+      { value: "Beetroot", label: "Beetroot (चुकंदर)" },
+      { value: "Radish", label: "Radish (मूली)" },
+      { value: "Turnip", label: "Turnip (शलजम)" },
+      { value: "Sweet Potato", label: "Sweet Potato (शकरकंद)" },
+      { value: "Yam", label: "Yam (जिमीकंद)" },
+      { value: "Elephant Yam", label: "Elephant Yam (सूरन)" },
+      { value: "Colocasia", label: "Colocasia (अरबी)" },
+      { value: "Tapioca", label: "Tapioca (कसावा)" },
+      { value: "Green Peas", label: "Green Peas (हरी मटर)" },
+      { value: "French Beans", label: "French Beans (फ्रेंच बीन्स)" },
+      { value: "Cluster Beans", label: "Cluster Beans (ग्वार फली)" },
+      { value: "Broad Beans", label: "Broad Beans (सेम)" },
+      { value: "Cowpea", label: "Cowpea (लोबिया)" },
+      { value: "Indian Beans", label: "Indian Beans (सेम)" },
+      { value: "Chickpea", label: "Chickpea (काबुली चना)" },
+      { value: "Black Gram", label: "Black Gram (उड़द)" },
+      { value: "Green Gram", label: "Green Gram (मूंग)" },
+      { value: "Lentil", label: "Lentil (मसूर)" },
+      { value: "Peanut", label: "Peanut (मूंगफली)" },
+      { value: "Pigeon Pea", label: "Pigeon Pea (अरहर)" },
+      { value: "Horse Gram", label: "Horse Gram (कुल्थी)" },
+      { value: "Moth Bean", label: "Moth Bean (मोठ)" },
+      { value: "Field Pea", label: "Field Pea (मटर)" },
+      { value: "Barley", label: "Barley (जौ)" },
+      { value: "Oats", label: "Oats (जई)" },
+      { value: "Ragi", label: "Ragi (रागी)" },
+      { value: "Kodo Millet", label: "Kodo Millet (कोदो)" },
+      { value: "Little Millet", label: "Little Millet (कुटकी)" },
+      { value: "Foxtail Millet", label: "Foxtail Millet (कंगनी)" },
+      { value: "Barnyard Millet", label: "Barnyard Millet (सांवा)" },
+      { value: "Proso Millet", label: "Proso Millet (चेना)" },
+      { value: "Pearl Millet", label: "Pearl Millet (बाजरा)" },
+      { value: "Finger Millet", label: "Finger Millet (रागी)" },
+      { value: "Sorghum", label: "Sorghum (ज्वार)" },
+      { value: "Maize Fodder", label: "Maize Fodder (मक्का चारा)" },
+      { value: "Berseem", label: "Berseem (बरसीम)" },
+      { value: "Lucerne", label: "Lucerne (लूसर्न)" },
+      { value: "Fodder", label: "Fodder (चारा)" },
+      { value: "Green Fodder", label: "Green Fodder (हरा चारा)" },
+      { value: "Ber", label: "Ber (बेर)" },
+      { value: "Custard Apple", label: "Custard Apple (सीताफल)" },
+      { value: "Sapota", label: "Sapota (चीकू)" },
+      { value: "Litchi", label: "Litchi (लीची)" },
+      { value: "Jackfruit", label: "Jackfruit (कटहल)" },
+      { value: "Pears", label: "Pears (नाशपाती)" },
+      { value: "Peach", label: "Peach (आड़ू)" },
+      { value: "Plum", label: "Plum (आलूबुखारा)" },
+      { value: "Apricot", label: "Apricot (खुबानी)" },
+      { value: "Papaya Raw", label: "Papaya Raw (कच्चा पपीता)" },
+      { value: "Amla", label: "Amla (आंवला)" },
+      { value: "Jamun", label: "Jamun (जामुन)" },
+      { value: "Karonda", label: "Karonda (करौंदा)" },
+      { value: "Fig", label: "Fig (अंजीर)" },
+      { value: "Dates", label: "Dates (खजूर)" },
+      { value: "Dragon Fruit", label: "Dragon Fruit (ड्रैगन फ्रूट)" },
+      { value: "Kiwi", label: "Kiwi (कीवी)" },
+      { value: "Strawberry", label: "Strawberry (स्ट्रॉबेरी)" },
+      { value: "Mosambi", label: "Mosambi (मौसंबी)" },
+      { value: "Sweet Orange", label: "Sweet Orange (मीठा संतरा)" },
+      { value: "Tinda", label: "Tinda (टिंडा)" },
+      { value: "Chow Chow", label: "Chow Chow (चायोटे)" },
+      { value: "Ash Gourd", label: "Ash Gourd (पेठा)" },
+      { value: "Snake Gourd", label: "Snake Gourd (चिचिंडा)" },
+      { value: "Pointed Gourd", label: "Pointed Gourd (परवल)" },
+      { value: "Ivy Gourd", label: "Ivy Gourd (कुंदरू)" },
+      { value: "Capsicum", label: "Capsicum (शिमला मिर्च)" },
+      { value: "Green Beans", label: "Green Beans (हरी बीन्स)" },
+      { value: "Broccoli", label: "Broccoli (ब्रोकोली)" },
+      { value: "Celery", label: "Celery (अजमोद)" },
+      { value: "Leek", label: "Leek (लीक)" },
+      { value: "Kohlrabi", label: "Kohlrabi (गांठगोभी)" },
+      { value: "Knol Khol", label: "Knol Khol (गांठगोभी)" },
+      { value: "Spring Onion", label: "Spring Onion (हरा प्याज़)" },
+      { value: "Raw Banana", label: "Raw Banana (कच्चा केला)" },
+      { value: "Raw Mango", label: "Raw Mango (कच्चा आम)" },
+      { value: "Green Papaya", label: "Green Papaya (हरा पपीता)" },
+      { value: "Mushroom", label: "Mushroom (मशरूम)" },
+      { value: "Button Mushroom", label: "Button Mushroom (बटन मशरूम)" },
+      { value: "Dried Peas", label: "Dried Peas (सूखी मटर)" },
+      { value: "Dried Chillies", label: "Dried Chillies (सूखी मिर्च)" },
+      { value: "Dry Ginger", label: "Dry Ginger (सोंठ)" },
+      { value: "Dry Coconut", label: "Dry Coconut (सूखा नारियल)" },
+      { value: "Betel Leaves", label: "Betel Leaves (पान के पत्ते)" },
+      { value: "Arecanut", label: "Arecanut (सुपारी)" },
+      { value: "Betel Nut", label: "Betel Nut (सुपारी)" },
+      { value: "Mahua", label: "Mahua (महुआ)" },
+      { value: "Neem Seed", label: "Neem Seed (नीम बीज)" },
+      { value: "Tendu Leaves", label: "Tendu Leaves (तेंदू पत्ता)" },
+      { value: "Moringa", label: "Moringa (सहजन)" },
+      { value: "Flaxseed", label: "Flaxseed (अलसी)" },
+      { value: "Niger Seed", label: "Niger Seed (रामतिल)" },
+      { value: "Quinoa", label: "Quinoa (क्विनोआ)" },
+      { value: "Chia Seed", label: "Chia Seed (चिया बीज)" },
+      { value: "Rajma", label: "Rajma (राजमा)" },
+      { value: "Kabuli Chana", label: "Kabuli Chana (काबुली चना)" },
+      { value: "Masoor", label: "Masoor (मसूर)" },
+      { value: "Urad", label: "Urad (उड़द)" },
+      { value: "Moong", label: "Moong (मूंग)" },
+      { value: "Arhar", label: "Arhar (अरहर)" },
+      { value: "Gram Dal", label: "Gram Dal (चना दाल)" },
+      { value: "Mustard Seed", label: "Mustard Seed (सरसों बीज)" },
+      { value: "Rapeseed", label: "Rapeseed (राई)" },
+      { value: "Canola", label: "Canola (कैनोला)" },
+      { value: "Soybean Seed", label: "Soybean Seed (सोयाबीन बीज)" },
+      { value: "Cotton Seed", label: "Cotton Seed (कपास बीज)" },
+      { value: "Castor Seed", label: "Castor Seed (अरंडी बीज)" },
+      { value: "Sunflower Seed", label: "Sunflower Seed (सूरजमुखी बीज)" },
+      { value: "Sesame Seed", label: "Sesame Seed (तिल बीज)" },
+      { value: "Coriander Seed", label: "Coriander Seed (धनिया बीज)" },
+      { value: "Cumin Seed", label: "Cumin Seed (जीरा बीज)" },
+      { value: "Fennel Seed", label: "Fennel Seed (सौंफ बीज)" },
+      { value: "Fenugreek Seed", label: "Fenugreek Seed (मेथी बीज)" },
+      { value: "Ajwain Seed", label: "Ajwain Seed (अजवाइन बीज)" },
+      { value: "Poppy Seed", label: "Poppy Seed (खसखस)" },
+      { value: "Isabgol Seed", label: "Isabgol Seed (ईसबगोल बीज)" },
+      { value: "Chironji", label: "Chironji (चिरौंजी)" },
+      { value: "Makhana", label: "Makhana (मखाना)" },
+      { value: "Lotus Seed", label: "Lotus Seed (कमल बीज)" },
+      { value: "Sugar Beet", label: "Sugar Beet (चुकंदर)" },
+      { value: "Sweet Corn", label: "Sweet Corn (मीठा मक्का)" },
+      { value: "Baby Corn", label: "Baby Corn (बेबी कॉर्न)" },
+      { value: "Popcorn", label: "Popcorn (पॉपकॉर्न)" },
+      { value: "Bamboo", label: "Bamboo (बांस)" },
+      { value: "Hemp", label: "Hemp (हेम्प)" },
+      { value: "Stevia", label: "Stevia (स्टेविया)" },
+      { value: "Aloe Vera", label: "Aloe Vera (एलोवेरा)" },
+      { value: "Ashwagandha", label: "Ashwagandha (अश्वगंधा)" },
+      { value: "Tulsi", label: "Tulsi (तुलसी)" },
+      { value: "Mentha", label: "Mentha (पुदीना तेल फसल)" },
+      { value: "Lemongrass", label: "Lemongrass (लेमनग्रास)" },
+      { value: "Marigold", label: "Marigold (गेंदा)" },
+      { value: "Rose", label: "Rose (गुलाब)" },
+      { value: "Jasmine", label: "Jasmine (चमेली)" },
+      { value: "Chrysanthemum", label: "Chrysanthemum (गुलदाउदी)" },
+      { value: "Flowers", label: "Flowers (फूल)" },
+      { value: "Other Vegetables", label: "Other Vegetables (अन्य सब्जियां)" },
+      { value: "Other Fruits", label: "Other Fruits (अन्य फल)" },
+      { value: "Other Pulses", label: "Other Pulses (अन्य दालें)" },
+      { value: "Other Oilseeds", label: "Other Oilseeds (अन्य तिलहन)" },
+      { value: "Other Cereals", label: "Other Cereals (अन्य अनाज)" },
+      { value: "Other Spices", label: "Other Spices (अन्य मसाले)" },
+      { value: "Other", label: "Other (अन्य)" },
+      { value: "Kodo", label: "Kodo (कोदो)" },
+      { value: "Kutki", label: "Kutki (कुटकी)" },
+      { value: "Sama", label: "Sama (सांवा)" },
+      { value: "Chana", label: "Chana (चना)" },
+      { value: "Dill Seed", label: "Dill Seed (सोया/सुवा बीज)" },
+      { value: "Methi", label: "Methi (मेथी)" },
+      { value: "Tori", label: "Tori (तोरई)" },
+      { value: "Ridgeguard", label: "Ridgeguard (तुरई)" },
+      { value: "Coconut Copra", label: "Coconut Copra (नारियल गरी)" },
+      { value: "Copra", label: "Copra (सूखा नारियल)" },
+      { value: "Paddy", label: "Paddy (धान)" },
+      { value: "Paddy Straw", label: "Paddy Straw (धान का भूसा)" },
+      { value: "Wheat Straw", label: "Wheat Straw (गेहूँ का भूसा)" },
+      { value: "Maize Stover", label: "Maize Stover (मक्का चारा)" },
+      { value: "Sugarcane Tops", label: "Sugarcane Tops (गन्ने की पत्तियां)" },
+      { value: "Cane", label: "Cane (गन्ना)" },
+      { value: "Saffron", label: "Saffron (केसर)" },
+      { value: "Vanilla", label: "Vanilla (वेनिला)" },
+      { value: "Ginger Dry", label: "Ginger Dry (सूखी अदरक)" },
+      { value: "Garlic Dry", label: "Garlic Dry (सूखा लहसुन)" },
+      { value: "Onion Dry", label: "Onion Dry (सूखा प्याज़)" },
+      { value: "Red Chilli", label: "Red Chilli (लाल मिर्च)" },
+      { value: "Green Gram Whole", label: "Green Gram Whole (साबुत मूंग)" },
+      { value: "Black Gram Whole", label: "Black Gram Whole (साबुत उड़द)" },
+      { value: "Pigeon Pea Whole", label: "Pigeon Pea Whole (साबुत अरहर)" },
+      { value: "Lentil Whole", label: "Lentil Whole (साबुत मसूर)" },
+      { value: "Peas Dry", label: "Peas Dry (सूखी मटर)" },
+      { value: "Corn", label: "Corn (मक्का)" },
+      { value: "Millets", label: "Millets (मोटे अनाज)" },
+      { value: "Cereal", label: "Cereal (अनाज)" },
+      { value: "Suran", label: "Suran (सूरन)" },
+      { value: "Kachri", label: "Kachri (कचरी)" }
+    ];
+
   // Status messages
   const [listingSuccess, setListingSuccess] = useState("");
   const [listingError, setListingError] = useState("");
@@ -254,42 +508,19 @@ const [deliveryDate, setDeliveryDate] = useState("");
                     Crop Name <span className="text-red-500">*</span>
                   </label>
 
-                  <input
-                    type="text"
-                    list="crop-options"
+                  <Select
+                    label="Crop Name"
                     value={crop}
                     onChange={(e) => setCrop(e.target.value)}
-                    placeholder="Type or select crop name"
                     required
-                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-100"
-                  />
-
-                  <datalist id="crop-options">
-                    <option value="Tomato" />
-                    <option value="Potato" />
-                    <option value="Onion" />
-                    <option value="Wheat" />
-                    <option value="Garlic" />
-                    <option value="Mango" />
-                    <option value="Grapes" />
-
-                    {/* More common crops */}
-                    <option value="Rice" />
-                    <option value="Maize" />
-                    <option value="Chilli" />
-                    <option value="Apple" />
-                    <option value="Banana" />
-                    <option value="Pomegranate" />
-                    <option value="Guava" />
-                    <option value="Papaya" />
-                    <option value="Carrot" />
-                    <option value="Cabbage" />
-                    <option value="Cauliflower" />
-                    <option value="Peas" />
-                    <option value="Soybean" />
-                    <option value="Groundnut" />
-                    <option value="Mustard" />
-                  </datalist>
+                  >
+                    <option value="">Select crop</option>
+                    {cropOptions.map((cropOption) => (
+                      <option key={cropOption.value} value={cropOption.value}>
+                        {cropOption.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
 
                 <Select

@@ -8,9 +8,11 @@ export function Select({
   className = "",
   required = false,
   children,
+  options,
   ...props
 }) {
-  const selectId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
+  const selectId =
+    id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
   return (
     <div className="w-full">
@@ -38,7 +40,12 @@ export function Select({
             ${className}`}
           {...props}
         >
-          {children}
+          {children ||
+            options?.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
         </select>
 
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
@@ -47,6 +54,7 @@ export function Select({
       </div>
 
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+
       {helperText && !error && (
         <p className="mt-1 text-xs text-gray-500">{helperText}</p>
       )}
