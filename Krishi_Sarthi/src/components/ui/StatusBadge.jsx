@@ -21,6 +21,7 @@ export function StatusBadge({ status, className = "" }) {
         return "blue";
       case "pending":
       case "negotiation":
+      case "negotiating":
       case "pickup":
         return "amber";
       case "rejected":

@@ -18,6 +18,7 @@ import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { CropImage } from "../components/ui/CropImage";
 import { animateStagger } from "../utils/animations";
 
 import PriceTrend from "../components/PriceTrend";
@@ -483,12 +484,21 @@ export function MarketIntelligence() {
 
                           {/* Commodity & Mandi */}
                           <td className="py-4 px-5">
-
-                            <div className="font-semibold text-stone-800 text-lg">
-                              {row.commodity}
+                            <div className="flex items-center gap-3.5">
+                              <CropImage
+                                crop={row.commodity}
+                                size="table"
+                                className="rounded-xl shadow-xs shrink-0"
+                              />
+                              <div>
+                                <div className="font-bold text-stone-900 text-base sm:text-lg leading-tight">
+                                  {row.commodity}
+                                </div>
+                                <span className="text-[11px] text-stone-500 font-medium mt-0.5 block">
+                                  Mandi Benchmark
+                                </span>
+                              </div>
                             </div>
-
-
                           </td>
 
                           {/* Mandi */}
@@ -597,25 +607,25 @@ export function MarketIntelligence() {
                     className="p-4 border-gray-200"
                   >
 
-                    <div className="flex items-start justify-between">
-
-                      <div>
-
-                        <h4 className="font-bold text-gray-900 text-base">
-                          {row.market}
-                        </h4>
-
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {row.commodity} • {row.state} •{" "}
-                          {row.distance} km away
+                    <div className="flex items-start gap-3">
+                      <CropImage
+                        crop={row.commodity}
+                        size="card"
+                        className="rounded-xl shadow-xs shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-bold text-gray-900 text-base leading-tight">
+                            {row.market}
+                          </h4>
+                          <Badge variant="emerald" className="shrink-0 text-[11px]">
+                            {row.trend}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-600 font-medium mt-1">
+                          <strong className="text-gray-900">{row.commodity}</strong> • {row.state} • {row.distance} km away
                         </p>
-
                       </div>
-
-                      <Badge variant="emerald">
-                        {row.trend}
-                      </Badge>
-
                     </div>
 
 
@@ -694,14 +704,17 @@ export function MarketIntelligence() {
 
         <Card className="hover:border-emerald-300">
           <div className="flex items-start justify-between">
-            <div>
-              <span className="text-xs font-semibold text-gray-400 uppercase">
-                Nashik APMC • Maharashtra
-              </span>
+            <div className="flex items-center gap-3">
+              <CropImage crop="Tomato" size="card" className="rounded-xl shadow-xs shrink-0" />
+              <div>
+                <span className="text-xs font-semibold text-gray-400 uppercase">
+                  Nashik APMC • Maharashtra
+                </span>
 
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-1">
-                Tomato Modal Rate
-              </h3>
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-0.5">
+                  Tomato Modal Rate
+                </h3>
+              </div>
             </div>
 
             <Badge variant="emerald" dot>

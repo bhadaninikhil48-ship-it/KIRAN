@@ -19,6 +19,7 @@ import api from "../../services/api";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
+import { CropImage } from "../../components/ui/CropImage";
 
 export function FPODashboard() {
   const { user } = useContext(AuthContext);
@@ -220,12 +221,19 @@ export function FPODashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {openRequirements.map((req) => (
               <Card key={req.id} className="p-5 border-gray-200 hover:border-emerald-300 transition-all">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-base">{req.crop_name}</h3>
-                    <p className="text-xs text-gray-500">
-                      Buyer: <strong>{req.buyer_name || "Enterprise Buyer"}</strong>
-                    </p>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-start gap-3">
+                    <CropImage
+                      crop={req.crop_name}
+                      size="card"
+                      className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                    />
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-base">{req.crop_name}</h3>
+                      <p className="text-xs text-gray-500">
+                        Buyer: <strong>{req.buyer_name || "Enterprise Buyer"}</strong>
+                      </p>
+                    </div>
                   </div>
                   <Badge variant="blue">
                     {req.quality_grade || "Grade A"}

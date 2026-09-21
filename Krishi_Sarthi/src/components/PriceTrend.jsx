@@ -189,6 +189,7 @@ import {
 
 
 import "./PriceTrend.css";
+import { CropImage } from "./ui/CropImage";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 function PriceTrend({
@@ -280,12 +281,14 @@ function PriceTrend({
         return (
             <div className="price-trend">
 
-                <div className="price-trend-header">
-                    <h2>🌾 {commodity}</h2>
-
-                    <p className="market-name">
-                        {market}
-                    </p>
+                <div className="price-trend-header flex items-center gap-3">
+                    <CropImage crop={commodity} size="md" className="rounded-xl shadow-xs shrink-0" />
+                    <div>
+                        <h2>{commodity}</h2>
+                        <p className="market-name">
+                            {market}
+                        </p>
+                    </div>
                 </div>
 
                 <div className="seedhi-baat">
@@ -318,15 +321,17 @@ function PriceTrend({
     return (
         <div className="price-trend">
 
-            <div className="price-trend-header">
+            <div className="price-trend-header flex items-center gap-3.5">
+                <CropImage crop={commodity} size="lg" className="rounded-xl shadow-xs shrink-0" />
+                <div>
+                    <h2>
+                        {commodity}
+                    </h2>
 
-                <h2>
-                    🌾 {commodity}
-                </h2>
-
-                <p className="market-name">
-                    {market}
-                </p>
+                    <p className="market-name">
+                        {market}
+                    </p>
+                </div>
 
             </div>
 

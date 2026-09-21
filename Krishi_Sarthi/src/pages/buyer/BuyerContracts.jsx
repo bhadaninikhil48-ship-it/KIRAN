@@ -17,6 +17,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { StatusBadge } from "../../components/ui/StatusBadge";
+import { CropImage } from "../../components/ui/CropImage";
 
 export function BuyerContracts() {
   const [contracts, setContracts] = useState([]);
@@ -106,20 +107,27 @@ export function BuyerContracts() {
           {contracts.map((contract) => (
             <Card key={contract.id} className="p-6 border-gray-200 hover:border-emerald-300 transition-all">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                      Contract #{contract.id}: {contract.crop_name} Consignment
-                    </h2>
-                    <StatusBadge status={contract.status === "active" ? "Confirmed" : contract.status || "Active"} />
+                <div className="flex items-start gap-3.5">
+                  <CropImage
+                    crop={contract.crop_name}
+                    size="card"
+                    className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                        Contract #{contract.id}: {contract.crop_name} Consignment
+                      </h2>
+                      <StatusBadge status={contract.status === "active" ? "Confirmed" : contract.status || "Active"} />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-2">
+                      <span>Generated: {new Date(contract.created_at).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>Offer #{contract.offer_id}</span>
+                      <span>•</span>
+                      <span>Requirement #{contract.requirement_id}</span>
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-2">
-                    <span>Generated: {new Date(contract.created_at).toLocaleDateString()}</span>
-                    <span>•</span>
-                    <span>Offer #{contract.offer_id}</span>
-                    <span>•</span>
-                    <span>Requirement #{contract.requirement_id}</span>
-                  </p>
                 </div>
 
                 <div className="flex sm:flex-col items-baseline sm:items-end justify-between">
