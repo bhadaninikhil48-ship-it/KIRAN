@@ -19,6 +19,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { Modal } from "../../components/ui/Modal";
+import { CropImage } from "../../components/ui/CropImage";
 
 export function BuyerOffers() {
   const [offers, setOffers] = useState([]);
@@ -257,24 +258,31 @@ export function BuyerOffers() {
               >
                 {/* Offer Header */}
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-900 text-lg">
-                        {offer.crop_name}
-                      </h3>
+                  <div className="flex items-start gap-3">
+                    <CropImage
+                      crop={offer.crop_name}
+                      size="card"
+                      className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                    />
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-gray-900 text-lg">
+                          {offer.crop_name}
+                        </h3>
 
-                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
-                        {offer.quality_grade || "Grade A"}
-                      </span>
+                        <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                          {offer.quality_grade || "Grade A"}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Farmer:{" "}
+                        <strong className="text-gray-800">
+                          {offer.farmer_name}
+                        </strong>{" "}
+                        • Linked to Requirement #{offer.requirement_id}
+                      </p>
                     </div>
-
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Farmer:{" "}
-                      <strong className="text-gray-800">
-                        {offer.farmer_name}
-                      </strong>{" "}
-                      • Linked to Requirement #{offer.requirement_id}
-                    </p>
                   </div>
 
                   <StatusBadge
@@ -408,6 +416,27 @@ export function BuyerOffers() {
         subtitle={`Negotiating ${activeNegotiationOffer?.crop_name} offer with ${activeNegotiationOffer?.farmer_name}`}
       >
         <div className="space-y-4 text-xs sm:text-sm">
+          {activeNegotiationOffer && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+              <CropImage
+                crop={activeNegotiationOffer.crop_name}
+                size="card"
+                className="rounded-xl shadow-xs shrink-0 border border-gray-200"
+              />
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider block">
+                  Active Commodity
+                </span>
+                <p className="font-bold text-gray-900 text-sm">
+                  {activeNegotiationOffer.crop_name} • {activeNegotiationOffer.quality_grade || "Grade A"}
+                </p>
+                <p className="text-xs text-emerald-700 font-semibold">
+                  Original Offer: ₹{Number(activeNegotiationOffer.offer_price).toLocaleString()} / {activeNegotiationOffer.unit} • {Number(activeNegotiationOffer.quantity).toLocaleString()} {activeNegotiationOffer.unit}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Negotiation History */}
           <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/50 max-h-56 overflow-y-auto space-y-2.5">
             {loadingNegotiations ? (

@@ -16,6 +16,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
+import { CropImage } from "../../components/ui/CropImage";
 
 export function BuyerRequirements() {
   const [requirements, setRequirements] = useState([]);
@@ -179,14 +180,21 @@ export function BuyerRequirements() {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Crop Name *
                 </label>
-                <Input
-                  type="text"
-                  name="crop_name"
-                  value={formData.crop_name}
-                  onChange={handleChange}
-                  placeholder="e.g. Wheat, Tomato, Soybean"
-                  required
-                />
+                <div className="flex items-center gap-2">
+                  {formData.crop_name.trim() && (
+                    <CropImage crop={formData.crop_name} size="sm" className="rounded-lg shrink-0 border border-gray-200" />
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      type="text"
+                      name="crop_name"
+                      value={formData.crop_name}
+                      onChange={handleChange}
+                      placeholder="e.g. Wheat, Tomato, Soybean"
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -327,19 +335,26 @@ export function BuyerRequirements() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {requirements.map((req) => (
             <Card key={req.id} className="p-5 border-gray-200 hover:border-emerald-300 transition-all">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-gray-900 text-base">
-                      {req.crop_name}
-                    </h3>
-                    <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
-                      {req.quality_grade || "Grade A"}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <CropImage
+                    crop={req.crop_name}
+                    size="card"
+                    className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                  />
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-gray-900 text-base">
+                        {req.crop_name}
+                      </h3>
+                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                        {req.quality_grade || "Grade A"}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400 mt-0.5 block">
+                      Requirement #{req.id}
                     </span>
                   </div>
-                  <span className="text-xs text-gray-400 mt-0.5 block">
-                    Requirement #{req.id}
-                  </span>
                 </div>
                 <Badge variant={req.status === "open" ? "emerald" : "gray"}>
                   {req.status ? req.status.toUpperCase() : "OPEN"}

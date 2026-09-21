@@ -12,6 +12,7 @@ import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { CropImage } from "../components/ui/CropImage";
 import { animateStagger } from "../utils/animations";
 import { api } from "../services/api";
 
@@ -167,45 +168,52 @@ export function Opportunities() {
         /* Opportunity Comparison Cards */
         <div className="space-y-4">
           {filteredOpportunities.map((opp, idx) => (
-            <div
-              key={opp.id || idx}
-              className={`opp-card-anim rounded-2xl border transition-all p-5 sm:p-6 ${
+            <Card
+              key={opp.id}
+              className={`opp-card-anim opp-card border-2 transition-all duration-200 ${
                 opp.recommended
-                  ? "bg-gradient-to-br from-emerald-50/70 via-white to-white border-2 border-emerald-500 shadow-xs hover:shadow-md"
-                  : "bg-white border-gray-200/90 hover:border-gray-300 shadow-2xs"
+                  ? "border-emerald-500 bg-gradient-to-br from-emerald-50/40 to-white shadow-xs"
+                  : "border-gray-200/90 hover:border-gray-300"
               }`}
             >
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                        opp.recommended
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {opp.recommended ? "#1 Highest Price Rate" : `Rank #${idx + 1}`}
-                    </span>
-                    <Badge variant={opp.source === "Institutional Buyer" ? "blue" : "emerald"}>
-                      {opp.source}
-                    </Badge>
-                  </div>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-gray-100">
+                <div className="flex items-start gap-3.5">
+                  <CropImage
+                    crop={opp.crop}
+                    size="card"
+                    className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                          opp.recommended
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-gray-100 text-gray-700"
+                        }`}
+                      >
+                        {opp.recommended ? "#1 Highest Price Rate" : `Rank #${idx + 1}`}
+                      </span>
+                      <Badge variant={opp.source === "Institutional Buyer" ? "blue" : "emerald"}>
+                        {opp.source}
+                      </Badge>
+                    </div>
 
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-                      {opp.name}
-                    </h3>
-                    <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
-                      <MapPin size={13} className="text-gray-400" />
-                      {opp.location}
-                    </span>
-                  </div>
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                        {opp.name}
+                      </h3>
+                      <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin size={13} className="text-gray-400" />
+                        {opp.location}
+                      </span>
+                    </div>
 
-                  <p className="text-xs text-gray-500">
-                    Target Commodity: <strong className="text-gray-800">{opp.crop}</strong>
-                    {opp.grade && ` • Quality: ${opp.grade}`}
-                  </p>
+                    <p className="text-xs text-gray-500">
+                      Target Commodity: <strong className="text-gray-800">{opp.crop}</strong>
+                      {opp.grade && ` • Quality: ${opp.grade}`}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Quoted Rate Block */}
@@ -262,7 +270,7 @@ export function Opportunities() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

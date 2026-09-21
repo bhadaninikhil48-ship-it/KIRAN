@@ -22,6 +22,7 @@ import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Avatar } from "../components/ui/Avatar";
+import { CropImage } from "../components/ui/CropImage";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../services/api";
 
@@ -423,20 +424,27 @@ export function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {/* Today's Market Price Card */}
           <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {t("dashboard.liveMandiBenchmark")}
-                </p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <CropImage
+                  crop={topMarketPrice?.crop_name || "Tomato"}
+                  size="card"
+                  className="rounded-xl shadow-xs shrink-0 border border-gray-200"
+                />
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {t("dashboard.liveMandiBenchmark")}
+                  </p>
 
-                <h3 className="text-lg font-bold text-gray-900 mt-1">
-                  {topMarketPrice
-                    ? `${topMarketPrice.crop_name} (${topMarketPrice.market_name})`
-                    : t("dashboard.todayTomatoPrice")}
-                </h3>
+                  <h3 className="text-lg font-bold text-gray-900 mt-0.5">
+                    {topMarketPrice
+                      ? `${topMarketPrice.crop_name} (${topMarketPrice.market_name})`
+                      : t("dashboard.todayTomatoPrice")}
+                  </h3>
+                </div>
               </div>
 
-              <Badge variant="emerald" dot>
+              <Badge variant="emerald" dot className="shrink-0">
                 {topMarketPrice?.district || "Live Feed"}
               </Badge>
             </div>
@@ -491,21 +499,30 @@ export function Dashboard() {
 
           {/* Your Produce Lot Card */}
           <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {t("dashboard.activeFarmLot")}
-                </p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {activeLot?.crop_name && (
+                  <CropImage
+                    crop={activeLot.crop_name}
+                    size="card"
+                    className="rounded-xl shadow-xs shrink-0 border border-gray-200"
+                  />
+                )}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {t("dashboard.activeFarmLot")}
+                  </p>
 
-                <h3 className="text-lg font-bold text-gray-900 mt-1">
-                  {activeLot ? `${activeLot.crop_name} Lot` : "My Farm Produce"}
-                </h3>
+                  <h3 className="text-lg font-bold text-gray-900 mt-0.5">
+                    {activeLot ? `${activeLot.crop_name} Lot` : "My Farm Produce"}
+                  </h3>
+                </div>
               </div>
 
               {activeLot ? (
-                <Badge variant="green">{activeLot.status}</Badge>
+                <Badge variant="green" className="shrink-0">{activeLot.status}</Badge>
               ) : (
-                <Badge variant="gray">No Active Lot</Badge>
+                <Badge variant="gray" className="shrink-0">No Active Lot</Badge>
               )}
             </div>
 
@@ -524,8 +541,15 @@ export function Dashboard() {
             </div>
 
             <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-1.5 font-medium text-gray-700">
-                <span>{activeLot?.crop_name ? `🌾 ${activeLot.crop_name}` : "List your harvest"}</span>
+              <div className="flex items-center gap-2 font-medium text-gray-700">
+                {activeLot?.crop_name ? (
+                  <>
+                    <CropImage crop={activeLot.crop_name} size="xs" className="rounded shrink-0" />
+                    <span className="font-semibold text-gray-900">{activeLot.crop_name}</span>
+                  </>
+                ) : (
+                  <span>List your harvest</span>
+                )}
                 {activeLot?.quality_grade && (
                   <>
                     <span className="text-gray-300">•</span>
@@ -556,43 +580,50 @@ export function Dashboard() {
               className="block group bg-gradient-to-br from-emerald-50/70 via-white to-white border-2 border-emerald-500/70 hover:border-emerald-600 rounded-2xl p-5 sm:p-7 shadow-xs hover:shadow-md transition-all duration-200"
             >
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                      <Sparkles size={12} className="text-emerald-600" />
-                      {t("dashboard.bestOpportunity")}
-                    </span>
-
-                    <span className="text-xs text-gray-500 hidden sm:inline">
-                      {t("dashboard.maximizedNetRealization")}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap items-baseline gap-3">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                      {bestOpp.title}
-                    </h2>
-
-                    <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
-                      <MapPin size={14} className="text-gray-400" />
-                      {bestOpp.location}
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700">
-                      ₹{bestOpp.price.toLocaleString()}
-                    </span>
-
-                    <span className="text-sm font-medium text-gray-500">
-                      / {bestOpp.unit || "quintal"}
-                    </span>
-
-                    {bestOpp.price && bestOpp.quantity && (
-                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded ml-1">
-                        Est. Payout: ₹{(bestOpp.price * (bestOpp.unit === "quintal" ? bestOpp.quantity : bestOpp.quantity / 100)).toLocaleString()}
+                <div className="flex items-start gap-4">
+                  <CropImage
+                    crop={bestOpp.crop}
+                    size="lot"
+                    className="rounded-2xl shadow-sm shrink-0 border border-emerald-200 hidden sm:block"
+                  />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        <Sparkles size={12} className="text-emerald-600" />
+                        {t("dashboard.bestOpportunity")}
                       </span>
-                    )}
+
+                      <span className="text-xs text-gray-500 hidden sm:inline">
+                        {t("dashboard.maximizedNetRealization")}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap items-baseline gap-3">
+                      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {bestOpp.title}
+                      </h2>
+
+                      <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin size={14} className="text-gray-400" />
+                        {bestOpp.location}
+                      </span>
+                    </div>
+
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700">
+                        ₹{bestOpp.price.toLocaleString()}
+                      </span>
+
+                      <span className="text-sm font-medium text-gray-500">
+                        / {bestOpp.unit || "quintal"}
+                      </span>
+
+                      {bestOpp.price && bestOpp.quantity && (
+                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded ml-1">
+                          Est. Payout: ₹{(bestOpp.price * (bestOpp.unit === "quintal" ? bestOpp.quantity : bestOpp.quantity / 100)).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -622,7 +653,10 @@ export function Dashboard() {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                     <div>
                       <span className="text-gray-400 block">Crop</span>
-                      <span className="font-bold text-gray-900">{bestOpp.crop}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <CropImage crop={bestOpp.crop} size="xs" className="rounded shrink-0" />
+                        <span className="font-bold text-gray-900">{bestOpp.crop}</span>
+                      </div>
                     </div>
 
                     <div>
