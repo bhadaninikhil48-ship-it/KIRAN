@@ -405,15 +405,6 @@ export function BuyerRequirements() {
                 </Badge>
               </div>
 
-                  <Badge
-                    variant={req.status === "open" ? "emerald" : "gray"}
-                    dot
-                    size="sm"
-                    className="shrink-0"
-                  >
-                    {req.status ? req.status.toUpperCase() : "OPEN"}
-                  </Badge>
-                </div>
 
                 {/* Middle: Structured Data Specs Panel */}
                 <div className="mt-4 p-3.5 bg-gray-50/70 rounded-xl border border-gray-100 space-y-2.5 text-xs">
@@ -456,7 +447,6 @@ export function BuyerRequirements() {
                     </div>
                   )}
                 </div>
-              </div>
 
               {/* Footer: Created Date & Market Status */}
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400 font-medium">

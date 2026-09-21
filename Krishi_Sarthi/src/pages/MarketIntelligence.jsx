@@ -793,18 +793,6 @@ export function MarketIntelligence() {
 
       {/* 5. Top Benchmark Card & Recommendation */}
       <div className="stagger-box grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-        <Card className="hover:border-emerald-300 transition-all p-5 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-start justify-between">
-              <div>
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  Nashik APMC • Maharashtra
-                </span>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-1">
-                  Tomato Modal Rate
-                </h3>
-              </div>
-
         <Card className="hover:border-emerald-300">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">

@@ -21,6 +21,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { CropImage } from "../../components/ui/CropImage";
+import { Avatar } from "../../components/ui/Avatar";
 
 export function BuyerDashboard() {
   const { user } = useContext(AuthContext);
@@ -415,7 +416,6 @@ export function BuyerDashboard() {
                             "{offer.message}"
                           </p>
                         )}
-                      </div>
 
                       {/* Financial & Volume Metrics + Action */}
                       <div className="mt-4 pt-3.5 border-t border-gray-100">
@@ -437,7 +437,7 @@ export function BuyerDashboard() {
                           <div>
                             <span className="text-gray-400 block text-[11px] font-medium uppercase">Total Value</span>
                             <span className="font-bold text-emerald-700 text-sm mt-0.5 block">
-                              ₹{estValue.toLocaleString("en-IN")}
+                              {`₹${(Number(offer.offer_price || 0) * Number(offer.quantity || 0)).toLocaleString("en-IN")}`}
                             </span>
                           </div>
                         </div>
@@ -455,8 +455,7 @@ export function BuyerDashboard() {
                         </div>
                       </div>
                     </Card>
-                  );
-                })}
+                  ))}
               </div>
             )}
           </div>

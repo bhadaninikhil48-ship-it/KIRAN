@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
+import { EmptyState } from "../../components/ui/EmptyState";
+
 import {
   ReceiptText,
   ShieldCheck,
@@ -24,6 +27,7 @@ import {
   Circle,
   Layers,
 } from "lucide-react";
+
 import api from "../../services/api";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
@@ -190,34 +194,6 @@ export function BuyerContracts() {
               </p>
             </div>
           </div>
-        </Card>
-      ) : (
-        <div className="space-y-5">
-          {contracts.map((contract) => (
-            <Card key={contract.id} className="p-6 border-gray-200 hover:border-emerald-300 transition-all">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
-                <div className="flex items-start gap-3.5">
-                  <CropImage
-                    crop={contract.crop_name}
-                    size="card"
-                    className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                        Contract #{contract.id}: {contract.crop_name} Consignment
-                      </h2>
-                      <StatusBadge status={contract.status === "active" ? "Confirmed" : contract.status || "Active"} />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-2">
-                      <span>Generated: {new Date(contract.created_at).toLocaleDateString()}</span>
-                      <span>•</span>
-                      <span>Offer #{contract.offer_id}</span>
-                      <span>•</span>
-                      <span>Requirement #{contract.requirement_id}</span>
-                    </p>
-                  </div>
-                </div>
 
           {/* Metric 2: Active Contracts */}
           <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-xs flex flex-col justify-between">
@@ -426,6 +402,84 @@ export function BuyerContracts() {
         </div>
       )}
     </div>
+  );
+}
+
+
+function ContractCard({ contract }) {
+  const status =
+    contract.status === "active"
+      ? "Confirmed"
+      : contract.status || "Active";
+
+  return (
+    <Card className="p-5 sm:p-6 border-gray-200 hover:border-emerald-300 transition-all">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <CropImage
+            crop={contract.crop_name}
+            size="card"
+            className="rounded-xl shadow-xs shrink-0 border border-gray-200"
+          />
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+                Contract #{contract.id}: {contract.crop_name} Consignment
+              </h2>
+              <StatusBadge status={status} />
+            </div>
+
+            <p className="text-xs sm:text-sm text-gray-500 mt-1 flex flex-wrap items-center gap-2">
+              <span>
+                Generated:{" "}
+                {contract.created_at
+                  ? new Date(contract.created_at).toLocaleDateString()
+                  : "—"}
+              </span>
+              <span>•</span>
+              <span>Offer #{contract.offer_id ?? "—"}</span>
+              <span>•</span>
+              <span>Requirement #{contract.requirement_id ?? "—"}</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+        <div className="bg-gray-50 rounded-xl p-3">
+          <p className="text-xs text-gray-500">Quantity</p>
+          <p className="font-bold text-gray-900 mt-1">
+            {contract.quantity ?? "—"}
+          </p>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-3">
+          <p className="text-xs text-gray-500">Agreed Rate</p>
+          <p className="font-bold text-emerald-700 mt-1">
+            {contract.agreed_price != null
+              ? `₹${Number(contract.agreed_price).toLocaleString("en-IN")}`
+              : "—"}
+          </p>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-3">
+          <p className="text-xs text-gray-500">Total Amount</p>
+          <p className="font-bold text-gray-900 mt-1">
+            {contract.total_amount != null
+              ? `₹${Number(contract.total_amount).toLocaleString("en-IN")}`
+              : "—"}
+          </p>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-3">
+          <p className="text-xs text-gray-500">Delivery</p>
+          <p className="font-bold text-gray-900 mt-1 truncate">
+            {contract.delivery_location || "—"}
+          </p>
+        </div>
+      </div>
+    </Card>
   );
 }
 
