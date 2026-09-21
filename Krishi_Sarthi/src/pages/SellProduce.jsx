@@ -353,7 +353,7 @@ export function SellProduce() {
     { value: "Millets", label: "Millets (मोटे अनाज)" },
     { value: "Cereal", label: "Cereal (अनाज)" },
     { value: "Suran", label: "Suran (सूरन)" },
-    { value: "Kachri", label: "Kachri (कचरी)" }
+    { value: "Kachri", label: "Kachri (कचरी)" },
   ];
 
   // Status messages
@@ -576,7 +576,9 @@ export function SellProduce() {
         quantity: offerQty,
         unit: selectedReq.unit,
         price: offerPrice,
-        total: Number(offerPrice) * (selectedReq.unit === "quintal" ? Number(offerQty) : Number(offerQty) / 100),
+        total:
+          Number(offerPrice) *
+          (selectedReq.unit === "quintal" ? Number(offerQty) : Number(offerQty) / 100),
       });
       setSelectedReq(null);
       setOfferSuccessModal(true);
@@ -592,60 +594,113 @@ export function SellProduce() {
   );
 
   return (
-    <div ref={containerRef} className="space-y-6 sm:space-y-8">
-      {/* Page Header */}
-      <div className="stagger-block">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              {showSellForm ? "Sell New Crop" : "List & Sell Your Produce"}
-            </h1>
-            <p className="mt-1 text-xs sm:text-sm text-gray-500">
-              List your harvest to match with open institutional buyer procurement requirements.
-            </p>
+    <div ref={containerRef} className="space-y-6 sm:space-y-8 min-w-0">
+      {/* 1. Page Header */}
+      <div className="stagger-block bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-7 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200/60 shadow-2xs">
+              <ShoppingBasket size={22} />
+            </div>
+
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                  {showSellForm ? "Sell Your Produce" : "My Produce Listings"}
+                </h1>
+
+                {liveBenchmarkPrice ? (
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Live {crop} Benchmark: ₹{liveBenchmarkPrice.toLocaleString()}/q
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
+                    Mandi Benchmark Active
+                  </span>
+                )}
+              </div>
+
+              <p className="text-xs sm:text-sm text-gray-500 max-w-2xl font-normal leading-relaxed">
+                List your harvested produce to match with verified institutional buyers, track deal lifecycle milestones, and secure direct mandi benchmarks.
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {showSellForm && (
+
+          {/* Toggle View CTA Button */}
+          <div className="flex items-center gap-2.5 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+            {showSellForm ? (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setShowSellForm(false)}
+                onClick={() => {
+                  setListingSuccess("");
+                  setListingError("");
+                  setShowSellForm(false);
+                }}
+                className="font-medium text-gray-700"
               >
-                Back to Listings
+                ← Back to Listings ({myProduce.length})
               </Button>
-            )}
-
-            {liveBenchmarkPrice ? (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Live {crop} Benchmark: ₹{liveBenchmarkPrice.toLocaleString()}/q
-              </span>
             ) : (
-              <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
-                Mandi Benchmark Available
-              </span>
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                icon={Plus}
+                onClick={() => {
+                  setListingSuccess("");
+                  setListingError("");
+                  setShowSellForm(true);
+                }}
+                className="font-semibold shadow-xs"
+              >
+                Sell New Crop
+              </Button>
             )}
           </div>
         </div>
       </div>
 
+      {/* 2. Status Banners */}
       {listingSuccess && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-sm text-emerald-800 animate-fadeIn">
-          <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
-          <span>{listingSuccess}</span>
+        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between gap-3 text-sm text-emerald-800 shadow-2xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
+            <span className="font-medium">{listingSuccess}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setListingSuccess("")}
+            className="text-xs text-emerald-700 hover:text-emerald-900 font-semibold cursor-pointer shrink-0"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
       {listingError && (
-        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3 text-sm text-red-700 animate-fadeIn">
-          <AlertCircle size={18} className="shrink-0 text-red-600" />
-          <span>{listingError}</span>
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between gap-3 text-sm text-red-700 shadow-2xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <AlertCircle size={18} className="shrink-0 text-red-600" />
+            <span className="font-medium">{listingError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setListingError("")}
+            className="text-xs text-red-700 hover:text-red-900 font-semibold cursor-pointer shrink-0"
+          >
+            Dismiss
+          </button>
         </div>
       )}
 
+      {/* 3. Main Content: Either Listings View OR Sell Form View */}
       {!showSellForm ? (
-        <Card className="stagger-block border-gray-200/90">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 mb-3 border-b border-gray-100">
+        /* Listings View */
+        <Card className="stagger-block border-gray-200/90 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 mb-4 border-b border-gray-100">
             <div>
               <div className="flex items-center gap-2.5">
                 <h2 className="text-lg font-bold text-gray-900">
@@ -655,20 +710,22 @@ export function SellProduce() {
                   {myProduce.length} {myProduce.length === 1 ? "Lot" : "Lots"}
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Click any lot to view complete specs, agreement, live delivery tracking & payment lifecycle.
+              <p className="text-xs text-gray-500 mt-0.5">
+                Click any lot card to view complete specifications, lifecycle milestones, and live delivery tracking.
               </p>
             </div>
 
             <Button
               type="button"
               variant="primary"
+              size="sm"
               icon={Plus}
               onClick={() => {
                 setListingSuccess("");
                 setListingError("");
                 setShowSellForm(true);
               }}
+              className="font-semibold shadow-xs"
             >
               Sell New Crop
             </Button>
@@ -679,14 +736,18 @@ export function SellProduce() {
           ) : myProduce.length === 0 ? (
             <EmptyState
               title="No Produce Listed Yet"
-              description="Click 'Sell New Crop' to publish your first agricultural lot on KIRAN."
+              description="You haven't listed any produce lots yet. Click 'Sell New Crop' to publish your harvest on the KIRAN exchange."
               icon={Package}
+              actionLabel="+ Sell New Crop"
+              onAction={() => setShowSellForm(true)}
+              className="py-10 sm:py-14 bg-gray-50/50"
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               {myProduce.map((item) => {
                 const stageNum = getProduceStage(item);
-                const stageObj = LIFECYCLE_STAGES.find((s) => s.id === stageNum) || LIFECYCLE_STAGES[0];
+                const stageObj =
+                  LIFECYCLE_STAGES.find((s) => s.id === stageNum) || LIFECYCLE_STAGES[0];
                 const StageIcon = stageObj.icon;
                 const isCompleted = stageNum === 7;
                 const isInDelivery = stageNum === 4;
@@ -695,7 +756,7 @@ export function SellProduce() {
                   <div
                     key={item.id}
                     onClick={() => setSelectedProduceItem(item)}
-                    className="group relative bg-white border border-gray-200 hover:border-emerald-500 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between"
+                    className="group relative bg-white border border-gray-200 hover:border-emerald-400 hover:shadow-xs rounded-2xl p-5 transition-all duration-200 cursor-pointer flex flex-col justify-between"
                   >
                     <div>
                       {/* Top Row: Crop Photo, Name, Grade, Status, Delete */}
@@ -725,11 +786,11 @@ export function SellProduce() {
 
                         <div className="flex items-center gap-1.5 shrink-0">
                           {isCompleted ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
                               <CheckCircle2 size={12} className="text-emerald-600" /> Sold & Settled
                             </span>
                           ) : isInDelivery ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200 animate-pulse">
                               <Truck size={12} className="text-blue-600" /> In Delivery
                             </span>
                           ) : (
@@ -743,20 +804,20 @@ export function SellProduce() {
                               handleDeleteProduce(item.id);
                             }}
                             title="Delete Listing"
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ml-1"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ml-0.5"
                           >
                             <Trash2 size={16} />
                           </button>
                         </div>
                       </div>
 
-                      {/* Specs Row: Quantity, Location, Ready Date */}
-                      <div className="mt-3.5 grid grid-cols-2 gap-2 bg-gray-50/75 rounded-xl p-3 border border-gray-100 text-xs">
+                      {/* Specs Row: Quantity, Location, Ready Date, Listed Date */}
+                      <div className="mt-3.5 grid grid-cols-2 gap-2 bg-gray-50/80 rounded-xl p-3 border border-gray-100 text-xs">
                         <div className="flex items-center gap-2">
                           <Package size={14} className="text-emerald-600 shrink-0" />
-                          <div>
+                          <div className="min-w-0">
                             <span className="text-gray-400 block text-[10px] uppercase font-medium">Quantity</span>
-                            <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                            <span className="font-bold text-gray-900 text-xs sm:text-sm truncate block">
                               {item.quantity} {item.unit}
                             </span>
                           </div>
@@ -764,7 +825,7 @@ export function SellProduce() {
 
                         <div className="flex items-center gap-2">
                           <MapPin size={14} className="text-emerald-600 shrink-0" />
-                          <div className="truncate">
+                          <div className="min-w-0">
                             <span className="text-gray-400 block text-[10px] uppercase font-medium">Location</span>
                             <span className="font-semibold text-gray-800 truncate block">
                               {item.location || "Farmgate, MP"}
@@ -787,11 +848,15 @@ export function SellProduce() {
                         </div>
                       </div>
 
-                      {/* Mini-stepper / Current transaction stage indicator */}
+                      {/* 7-Stage Lifecycle Mini-Tracker */}
                       <div className="mt-3.5 pt-3 border-t border-gray-100">
                         <div className="flex items-center justify-between text-xs mb-2">
                           <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate">
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${isCompleted ? "bg-emerald-600" : "bg-emerald-500 animate-pulse"}`} />
+                            <span
+                              className={`w-2 h-2 rounded-full shrink-0 ${
+                                isCompleted ? "bg-emerald-600" : "bg-emerald-500 animate-pulse"
+                              }`}
+                            />
                             <span className="truncate">
                               Stage {stageNum} of 7: <span className="text-emerald-700 font-bold">{stageObj.label}</span>
                             </span>
@@ -823,7 +888,11 @@ export function SellProduce() {
                     <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-emerald-700 group-hover:text-emerald-800">
                       <span className="flex items-center gap-1.5">
                         <StageIcon size={14} className="text-emerald-600" />
-                        {isInDelivery ? "Live In-Transit Tracking" : isCompleted ? "Settlement Receipt & Milestones" : "Lifecycle Tracking"}
+                        {isInDelivery
+                          ? "Live In-Transit Tracking"
+                          : isCompleted
+                          ? "Settlement Receipt & Milestones"
+                          : "Lifecycle Tracking"}
                       </span>
                       <div className="flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
                         <span>View Details</span>
@@ -837,43 +906,54 @@ export function SellProduce() {
           )}
         </Card>
       ) : (
+        /* Sell Form View with Contextual Valuation & Matching Buyer Demands */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Form & Inventory (7 cols on lg) */}
+          {/* Left Column: Form (7 cols on lg) */}
           <div className="lg:col-span-7 space-y-6">
-            <Card className="stagger-block border-gray-200/90">
+            <Card className="stagger-block border-gray-200/90 shadow-xs">
               <CardHeader
                 title="Produce & Lot Specification"
-                subtitle="Specify harvest specifications to publish your lot on the KIRAN exchange."
+                subtitle="Provide your harvest details to publish this lot directly to verified institutional buyers."
               />
 
-              <form onSubmit={handleListProduce} className="space-y-5">
-                {/* 1. Crop & Quality */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Select
-                    label="Crop Name"
-                    value={crop}
-                    onChange={(e) => setCrop(e.target.value)}
-                    required
-                  >
-                    <option value="">Select crop</option>
+              <form onSubmit={handleListProduce} className="space-y-6">
+                {/* Visual Section 1: Produce Details */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <span className="h-5 w-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center justify-center">
+                      1
+                    </span>
+                    <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                      Produce Details
+                    </span>
+                  </div>
 
-                    {cropOptions.map((cropItem) => (
-                      <option key={cropItem.value} value={cropItem.value}>
-                        {cropItem.label}
-                      </option>
-                    ))}
-                  </Select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Select
+                      label="Crop Name"
+                      value={crop}
+                      onChange={(e) => setCrop(e.target.value)}
+                      required
+                    >
+                      <option value="">Select crop</option>
+                      {cropOptions.map((cropItem) => (
+                        <option key={cropItem.value} value={cropItem.value}>
+                          {cropItem.label}
+                        </option>
+                      ))}
+                    </Select>
 
-                  <Select
-                    label="Quality / Grade"
-                    value={grade}
-                    onChange={(e) => setGrade(e.target.value)}
-                    required
-                  >
-                    <option value="Grade A">Grade A</option>
-                    <option value="Grade B">Grade B</option>
-                    <option value="Grade C">Grade C</option>
-                  </Select>
+                    <Select
+                      label="Quality / Grade"
+                      value={grade}
+                      onChange={(e) => setGrade(e.target.value)}
+                      required
+                    >
+                      <option value="Grade A">Grade A (Premium Export / Retail)</option>
+                      <option value="Grade B">Grade B (Standard Commercial)</option>
+                      <option value="Grade C">Grade C (Processing Standard)</option>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Visual Crop Confirmation Card for Farmer Accessibility */}
@@ -928,16 +1008,58 @@ export function SellProduce() {
                     </div>
                   </div>
 
-                  <Input
-                    label="Target Quoted Rate (₹ / quintal)"
-                    placeholder="5000"
-                    type="number"
-                    min="100"
-                    value={expectedPrice}
-                    onChange={(e) => setExpectedPrice(Number(e.target.value))}
-                    suffix="₹/q"
-                    required
-                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Quantity & Unit Composite Input */}
+                    <div>
+                      <label className="mb-1.5 block text-xs sm:text-sm font-medium text-gray-700">
+                        Quantity <span className="text-red-500">*</span>
+                      </label>
+
+                      <div className="flex w-full overflow-hidden rounded-lg border border-gray-300 bg-white focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-500/20 shadow-2xs transition-all">
+                        <input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={quantity}
+                          onChange={(e) => setQuantity(Number(e.target.value))}
+                          placeholder="e.g. 2500"
+                          required
+                          className="min-w-0 flex-1 px-3.5 py-2.5 text-sm outline-none text-gray-900 placeholder:text-gray-400"
+                        />
+
+                        <select
+                          value={unit}
+                          onChange={(e) => setUnit(e.target.value)}
+                          className="w-24 shrink-0 border-l border-gray-200 bg-gray-50 px-2 py-2.5 text-xs font-semibold text-gray-700 outline-none cursor-pointer"
+                        >
+                          <option value="kg">Kilograms (kg)</option>
+                          <option value="quintal">Quintals (q)</option>
+                        </select>
+                      </div>
+
+                      {unit === "kg" && quantity ? (
+                        <p className="mt-1 text-xs text-gray-500">
+                          ≈ {(Number(quantity) / 100).toFixed(1)} Quintals
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <Input
+                      label="Target Quoted Rate (₹ / quintal)"
+                      placeholder="e.g. 2750"
+                      type="number"
+                      min="100"
+                      value={expectedPrice}
+                      onChange={(e) => setExpectedPrice(Number(e.target.value))}
+                      suffix="₹/q"
+                      helperText={
+                        liveBenchmarkPrice
+                          ? `Live APMC benchmark: ₹${liveBenchmarkPrice.toLocaleString()}/q`
+                          : "Enter your minimum acceptable farmgate price"
+                      }
+                      required
+                    />
+                  </div>
                 </div>
 
                 {/* 3. Farm Location & Harvest Date */}
@@ -961,25 +1083,32 @@ export function SellProduce() {
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  loading={listingProduce}
-                  className="w-full font-semibold shadow-xs"
-                  icon={Plus}
-                >
-                  List Produce on KIRAN
-                </Button>
+                {/* Submit Area */}
+                <div className="pt-2 space-y-3">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    loading={listingProduce}
+                    className="w-full font-bold shadow-xs text-base py-3"
+                    icon={ShoppingBasket}
+                  >
+                    List Produce on KIRAN Exchange
+                  </Button>
+
+                  <p className="text-[11px] text-gray-400 text-center flex items-center justify-center gap-1.5 font-medium">
+                    <ShieldCheck size={14} className="text-emerald-600" />
+                    Direct buyer matching • Zero hidden intermediary deductions • Secured milestone escrow
+                  </p>
+                </div>
               </form>
             </Card>
-
           </div>
 
-          {/* Right Column: Real-time Lot Valuation & Open Buyer Requirements (5 cols on lg) */}
+          {/* Right Column: Contextual Valuation & Matching Buyer Demands (5 cols on lg) */}
           <div className="lg:col-span-5 space-y-6">
             {/* Real-time Lot Valuation Card */}
-            <Card className="stagger-block bg-gradient-to-br from-emerald-50/60 to-white border-emerald-200">
+            <Card className="stagger-block bg-gradient-to-br from-emerald-50/40 via-white to-white border border-emerald-200/90 shadow-xs">
               <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
                 <div className="flex items-center gap-3">
                   <CropImage crop={crop} size="card" className="rounded-xl shadow-xs shrink-0" />
@@ -1007,16 +1136,18 @@ export function SellProduce() {
                     {crop || "Unspecified Crop"} • {quantity || 0} {unit} ({grade})
                   </span>
                 </div>
+
                 <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-gray-500">Origin / Location:</span>
                   <span className="font-medium text-gray-700">
                     {originLocation}
                   </span>
                 </div>
+
                 <div className="flex items-center justify-between text-xs sm:text-sm">
-                  <span className="text-gray-500">Target Rate:</span>
+                  <span className="text-gray-500">Target Quoted Rate:</span>
                   <span className="font-semibold text-gray-800">
-                    ₹{expectedPrice.toLocaleString()} / quintal
+                    ₹{expectedPrice ? expectedPrice.toLocaleString() : 0} / quintal
                   </span>
                 </div>
 
@@ -1039,14 +1170,14 @@ export function SellProduce() {
             </Card>
 
             {/* Available Buyer Requirements for Selected Crop */}
-            <Card className="stagger-block border-gray-200/90">
+            <Card className="stagger-block border-gray-200/90 shadow-xs">
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-100">
                 <div>
                   <h3 className="text-base font-bold text-gray-900">
                     Available Buyers{crop ? ` (${crop})` : ""}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Buyer requirements matching the crop you selected
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Matching buyer procurement requests on the exchange
                   </p>
                 </div>
                 <Badge variant="emerald">
@@ -1057,16 +1188,18 @@ export function SellProduce() {
               {!crop ? (
                 <EmptyState
                   title="Select a Crop"
-                  description="Choose a crop above to see active buyer requirements for that crop."
+                  description="Choose a crop in the form to see matching open buyer procurement requirements."
                   icon={Package}
+                  className="py-6 sm:py-8 bg-gray-50/50"
                 />
               ) : loadingReqs ? (
-                <LoadingState message={`Finding buyers for ${crop}...`} />
+                <LoadingState message={`Finding active buyers for ${crop}...`} />
               ) : openRequirements.length === 0 ? (
                 <EmptyState
-                  title={`No Active Buyers for ${crop}`}
-                  description="No open buyer requirement is currently available for this crop."
+                  title={`No Active Buyer RFQs for ${crop}`}
+                  description="No open procurement request currently listed. Your produce will be published to the open exchange."
                   icon={Package}
+                  className="py-6 sm:py-8 bg-gray-50/50"
                 />
               ) : (
                 <div className="space-y-3.5">
@@ -1201,7 +1334,6 @@ export function SellProduce() {
                 </div>
               )}
             </Card>
-
           </div>
         </div>
       )}
@@ -1227,19 +1359,19 @@ export function SellProduce() {
 
             {offerError && (
               <div className="p-3 rounded-lg bg-red-50 text-xs text-red-700 flex items-center gap-2">
-                <AlertCircle size={16} />
+                <AlertCircle size={16} className="shrink-0" />
                 <span>{offerError}</span>
               </div>
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
-                label="Offer Price (₹)"
+                label="Offer Price (₹ / unit)"
                 type="number"
                 required
                 value={offerPrice}
                 onChange={(e) => setOfferPrice(e.target.value)}
-                helperText={`Buyer's ceiling: ₹${selectedReq.max_price || "Open"}`}
+                helperText={`Buyer ceiling: ₹${selectedReq.max_price || "Open"}`}
               />
 
               <Input
@@ -1278,6 +1410,7 @@ export function SellProduce() {
                 variant="primary"
                 loading={submittingOffer}
                 icon={ArrowRight}
+                className="font-semibold"
               >
                 Confirm & Submit Offer
               </Button>
@@ -1304,7 +1437,7 @@ export function SellProduce() {
           </div>
 
           {offerSuccessData && (
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs sm:text-sm text-gray-700">
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs sm:text-sm text-gray-700 border border-gray-100">
               <div className="flex justify-between">
                 <span className="text-gray-500">Offer ID:</span>
                 <span className="font-bold text-gray-900">#KS-OFFER-{offerSuccessData.offerId}</span>
@@ -1315,7 +1448,9 @@ export function SellProduce() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Proposed Crop:</span>
-                <span className="font-semibold">{offerSuccessData.crop} ({offerSuccessData.quantity} {offerSuccessData.unit})</span>
+                <span className="font-semibold">
+                  {offerSuccessData.crop} ({offerSuccessData.quantity} {offerSuccessData.unit})
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Offered Rate:</span>
@@ -1330,13 +1465,13 @@ export function SellProduce() {
 
           <div className="flex gap-3 pt-2">
             <Button
-              className="flex-1"
+              className="flex-1 font-semibold"
               onClick={() => setOfferSuccessModal(false)}
             >
               Done
             </Button>
             <Link to="/offers" className="flex-1">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full font-semibold">
                 View in My Offers
               </Button>
             </Link>

@@ -33,6 +33,7 @@ import BuyerContracts from "./pages/buyer/BuyerContracts";
 
 // FPO Pages
 import FPODashboard from "./pages/fpo/FPODashboard";
+import LandingPage from "./pages/LandingPage";
 
 import PriceTrend from "./components/PriceTrend";
 import "./App.css";
@@ -41,6 +42,12 @@ import "./App.css";
 function AppLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user, token } = useContext(AuthContext);
+
+  // If visitor is unauthenticated, render purely the outlet (for public landing) without platform app chrome
+  if (!token || !user) {
+    return <Outlet />;
+  }
 
   return (
     <div className="min-h-screen w-full bg-gray-50 text-gray-900 flex flex-col lg:flex-row antialiased">
@@ -71,7 +78,7 @@ function AppLayout() {
   );
 }
 
-// Smart root handler that directs user according to their role
+// Smart root handler that directs user according to their role or presents public landing
 function HomeRoute() {
   const { user, token, loading } = useContext(AuthContext);
 
@@ -84,7 +91,7 @@ function HomeRoute() {
   }
 
   if (!token || !user) {
-    return <Navigate to="/login" replace />;
+    return <LandingPage />;
   }
 
   if (user.role === "buyer") {
@@ -107,6 +114,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="/home" element={<Navigate to="/" replace />} />
 
           {/* Authenticated Platform App Layout */}
           <Route element={<AppLayout />}>
