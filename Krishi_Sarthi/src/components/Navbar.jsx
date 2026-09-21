@@ -15,6 +15,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import gsap from "gsap";
 import { isReducedMotion } from "../utils/animations";
 import { AuthContext } from "../context/AuthContext";
+import { Avatar } from "./ui/Avatar";
 
 const initialNotifications = [
   {
@@ -127,6 +128,18 @@ export function Navbar({ onMenuToggle }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
   };
 
+  // Dynamic location based on user's saved profile data with non-breaking fallback
+  const userLocation =
+    user?.location ||
+    (user?.village && user?.state ? `${user.village} • ${user.state}` : null) ||
+    (user?.district && user?.state ? `${user.district} • ${user.state}` : null) ||
+    (user?.id && localStorage.getItem(`kiran_location_${user.id}`)) ||
+    (user?.role === "buyer"
+      ? "Mumbai Hub • Maharashtra"
+      : user?.role === "fpo"
+      ? "Indore Cluster • Madhya Pradesh"
+      : "Indore Agri Cluster • Madhya Pradesh");
+
   return (
     <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-gray-200/90 px-3 sm:px-6 flex items-center justify-between transition-all">
       {/* Left: Hamburger & Title */}
@@ -150,9 +163,9 @@ export function Navbar({ onMenuToggle }) {
               Live Mandi Feeds
             </span>
           </div>
-          <p className="hidden sm:flex items-center gap-1 text-[11px] text-gray-500 truncate">
-            <MapPin size={11} className="text-gray-400" />
-            <span>Indore Agri Cluster • Madhya Pradesh</span>
+          <p className="flex items-center gap-1 text-[11px] text-gray-600 truncate font-medium">
+            <MapPin size={12} className="text-emerald-600 shrink-0" />
+            <span className="truncate">{userLocation}</span>
           </p>
         </div>
       </div>
@@ -277,21 +290,18 @@ export function Navbar({ onMenuToggle }) {
         {/* User Profile Capsule */}
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:border-l sm:border-gray-200">
           <Link
-            to={user?.role === "farmer" ? "/farmer/profile" : "#"}
+            to="/profile"
             className="flex items-center gap-2 group cursor-pointer"
-            title={user?.role === "farmer" ? "Manage Profile" : undefined}
+            title="Manage Profile & Photo"
           >
-            <div className="h-9 w-9 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs ring-2 ring-emerald-500/20 group-hover:bg-emerald-700 transition-colors">
-              {user?.name
-                ? user.name
-                    .split(" ")
-                    .filter(Boolean)
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()
-                    .slice(0, 2)
-                : "U"}
-            </div>
+            <Avatar
+              src={user?.avatar}
+              name={user?.name || "User"}
+              role={user?.role || "farmer"}
+              size="md"
+              ring
+              className="group-hover:ring-emerald-500/50 transition-all"
+            />
 
             <div className="hidden sm:block text-left">
               <div className="flex items-center gap-1.5 leading-none">

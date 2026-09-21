@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   CheckCircle2,
   Sparkles,
@@ -10,6 +10,9 @@ import {
   AlertCircle,
   Plus,
   Package,
+  Clock,
+  Truck,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardHeader } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -20,6 +23,11 @@ import { Modal } from "../components/ui/Modal";
 import { StatusBadge } from "../components/ui/StatusBadge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import {
+  ProduceDetailModal,
+  getProduceStage,
+  LIFECYCLE_STAGES,
+} from "../components/ProduceDetailModal";
 import { animateStagger } from "../utils/animations";
 import { api } from "../services/api";
 
@@ -38,7 +46,33 @@ export function SellProduce() {
   const [openRequirements, setOpenRequirements] = useState([]);
   const [loadingReqs, setLoadingReqs] = useState(false);
   const [liveBenchmarkPrice, setLiveBenchmarkPrice] = useState(null);
-  const [showSellForm, setShowSellForm] = useState(false);
+  const [selectedProduceItem, setSelectedProduceItem] = useState(null);
+  const [stageRefresh, setStageRefresh] = useState(0);
+
+  const locationHook = useLocation();
+  const [showSellForm, setShowSellForm] = useState(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      return (
+        searchParams.get("action") === "new" ||
+        searchParams.get("new") === "true" ||
+        Boolean(locationHook?.state?.newCrop)
+      );
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(locationHook.search);
+    if (
+      searchParams.get("action") === "new" ||
+      searchParams.get("new") === "true" ||
+      Boolean(locationHook?.state?.newCrop)
+    ) {
+      setShowSellForm(true);
+    }
+  }, [locationHook.search, locationHook.state]);
 
   // Same 250 crop options used in the marketplace crop filter
   const cropOptions = [
@@ -515,13 +549,18 @@ export function SellProduce() {
 
       {!showSellForm ? (
         <Card className="stagger-block border-gray-200/90">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 mb-2 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 mb-3 border-b border-gray-100">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">
-                My Active Produce Listings
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-lg font-bold text-gray-900">
+                  My Active Produce Listings
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  {myProduce.length} {myProduce.length === 1 ? "Lot" : "Lots"}
+                </span>
+              </div>
               <p className="text-xs text-gray-500 mt-1">
-                Manage your currently listed agricultural lots on KIRAN.
+                Click any lot to view complete specs, agreement, live delivery tracking & payment lifecycle.
               </p>
             </div>
 
@@ -548,35 +587,149 @@ export function SellProduce() {
               icon={Package}
             />
           ) : (
-            <div className="divide-y divide-gray-100">
-              {myProduce.map((item) => (
-                <div key={item.id} className="py-3.5 flex items-center justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-gray-900">{item.crop_name}</span>
-                      <StatusBadge status={item.status} />
-                      {item.quality_grade && (
-                        <span className="text-[11px] font-semibold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
-                          {item.quality_grade}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      {item.quantity} {item.unit} • {item.location || "Farmgate"}
-                      {item.available_from && ` • Ready: ${item.available_from.split("T")[0]}`}
-                    </p>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {myProduce.map((item) => {
+                const stageNum = getProduceStage(item);
+                const stageObj = LIFECYCLE_STAGES.find((s) => s.id === stageNum) || LIFECYCLE_STAGES[0];
+                const StageIcon = stageObj.icon;
+                const isCompleted = stageNum === 7;
+                const isInDelivery = stageNum === 4;
 
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteProduce(item.id)}
-                    title="Delete Listing"
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => setSelectedProduceItem(item)}
+                    className="group relative bg-white border border-gray-200 hover:border-emerald-500 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between"
                   >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))}
+                    <div>
+                      {/* Top Row: Crop Name, Grade, Status, Delete */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
+                              {item.crop_name}
+                            </h3>
+                            {item.quality_grade && (
+                              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-md">
+                                {item.quality_grade}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400">
+                            Lot #{item.id ? String(item.id).padStart(4, "0") : "0001"} • KIRAN Exchange
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {isCompleted ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <CheckCircle2 size={12} className="text-emerald-600" /> Sold & Settled
+                            </span>
+                          ) : isInDelivery ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
+                              <Truck size={12} className="text-blue-600" /> In Delivery
+                            </span>
+                          ) : (
+                            <StatusBadge status={item.status} />
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProduce(item.id);
+                            }}
+                            title="Delete Listing"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer ml-1"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Specs Row: Quantity, Location, Ready Date */}
+                      <div className="mt-3.5 grid grid-cols-2 gap-2 bg-gray-50/75 rounded-xl p-3 border border-gray-100 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Package size={14} className="text-emerald-600 shrink-0" />
+                          <div>
+                            <span className="text-gray-400 block text-[10px] uppercase font-medium">Quantity</span>
+                            <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                              {item.quantity} {item.unit}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <MapPin size={14} className="text-emerald-600 shrink-0" />
+                          <div className="truncate">
+                            <span className="text-gray-400 block text-[10px] uppercase font-medium">Location</span>
+                            <span className="font-semibold text-gray-800 truncate block">
+                              {item.location || "Farmgate, MP"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1 border-t border-gray-200/60 col-span-2 sm:col-span-1">
+                          <Calendar size={13} className="text-gray-400 shrink-0" />
+                          <span className="text-gray-600 truncate">
+                            Ready: <span className="font-medium text-gray-900">{item.available_from ? item.available_from.split("T")[0] : "Ready Now"}</span>
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-1 border-t border-gray-200/60 col-span-2 sm:col-span-1">
+                          <Clock size={13} className="text-gray-400 shrink-0" />
+                          <span className="text-gray-600 truncate">
+                            Listed: <span className="font-medium text-gray-900">{item.created_at ? new Date(item.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "Today"}</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Mini-stepper / Current transaction stage indicator */}
+                      <div className="mt-3.5 pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between text-xs mb-2">
+                          <div className="flex items-center gap-1.5 font-semibold text-gray-800 truncate">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${isCompleted ? "bg-emerald-600" : "bg-emerald-500 animate-pulse"}`} />
+                            <span className="truncate">
+                              Stage {stageNum} of 7: <span className="text-emerald-700 font-bold">{stageObj.label}</span>
+                            </span>
+                          </div>
+                          <span className="text-[11px] text-gray-400 font-medium shrink-0 ml-1">
+                            {isCompleted ? "100% Done" : `${Math.round((stageNum / 7) * 100)}%`}
+                          </span>
+                        </div>
+
+                        {/* 7-step segment mini progress bar */}
+                        <div className="grid grid-cols-7 gap-1 h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                          {LIFECYCLE_STAGES.map((s) => (
+                            <div
+                              key={s.id}
+                              className={`h-full rounded-xs transition-all ${
+                                s.id <= stageNum
+                                  ? isCompleted
+                                    ? "bg-emerald-600"
+                                    : "bg-emerald-500"
+                                  : "bg-gray-200"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Bar */}
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-emerald-700 group-hover:text-emerald-800">
+                      <span className="flex items-center gap-1.5">
+                        <StageIcon size={14} className="text-emerald-600" />
+                        {isInDelivery ? "Live In-Transit Tracking" : isCompleted ? "Settlement Receipt & Milestones" : "Lifecycle Tracking"}
+                      </span>
+                      <div className="flex items-center gap-0.5 group-hover:translate-x-1 transition-transform">
+                        <span>View Details</span>
+                        <ChevronRight size={14} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </Card>
@@ -952,6 +1105,19 @@ export function SellProduce() {
           </div>
         </div>
       </Modal>
+
+      {/* Produce Listing Detail & 7-Stage Lifecycle Modal */}
+      <ProduceDetailModal
+        isOpen={Boolean(selectedProduceItem)}
+        onClose={() => setSelectedProduceItem(null)}
+        item={selectedProduceItem}
+        onStageChange={(itemId, newStage) => {
+          setStageRefresh((k) => k + 1);
+          if (selectedProduceItem && selectedProduceItem.id === itemId) {
+            setSelectedProduceItem({ ...selectedProduceItem });
+          }
+        }}
+      />
     </div>
   );
 }

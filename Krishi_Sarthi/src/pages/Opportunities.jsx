@@ -126,8 +126,8 @@ export function Opportunities() {
           </p>
         </div>
 
-        <Link to="/sell">
-          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+        <Link to="/sell?action=new" state={{ newCrop: true }}>
+          <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 font-semibold shadow-xs">
             List Fresh Produce Lot
           </Button>
         </Link>

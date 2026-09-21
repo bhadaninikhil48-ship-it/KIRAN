@@ -27,7 +27,7 @@ const farmerNavItems = [
   { to: "/buyers", key: "Find Buyers", label: "Find Buyers", icon: Users },
   { to: "/offers", key: "My Offers", label: "My Offers", icon: FileText },
   { to: "/transactions", key: "Transactions", label: "Transactions", icon: ReceiptText },
-  { to: "/farmer/profile", key: "Profile", label: "Farmer Profile", icon: User },
+  { to: "/profile", key: "Profile", label: "Farmer Profile", icon: User },
   { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
 ];
 
@@ -37,12 +37,14 @@ const buyerNavItems = [
   { to: "/buyer/offers", key: "Offers", label: "Received Offers", icon: FileText },
   { to: "/buyer/contracts", key: "Contracts", label: "Contracts", icon: ReceiptText },
   { to: "/markets", key: "Market Intelligence", label: "Market Prices", icon: Store },
+  { to: "/profile", key: "Profile", label: "Buyer Profile", icon: User },
   { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
 ];
 
 const fpoNavItems = [
   { to: "/fpo/dashboard", key: "Dashboard", label: "FPO Dashboard", icon: LayoutDashboard },
   { to: "/markets", key: "Market Intelligence", label: "Market Prices", icon: Store },
+  { to: "/profile", key: "Profile", label: "FPO Profile", icon: User },
   { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
 ];
 

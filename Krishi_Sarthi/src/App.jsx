@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Shell Components
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
+import FloatingVoiceAssistant from "./components/FloatingVoiceAssistant";
 import { LoadingState } from "./components/ui/LoadingState";
 
 // Auth Pages
@@ -62,6 +63,9 @@ function AppLayout() {
         <main className="flex-1 p-3.5 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto min-w-0">
           <Outlet />
         </main>
+
+        {/* Global Floating Voice Assistant for all authenticated roles */}
+        <FloatingVoiceAssistant />
       </div>
     </div>
   );
@@ -150,10 +154,19 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* User Profile Routes (accessible by all platform roles) */}
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute allowedRoles={["farmer", "buyer", "fpo"]}>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/farmer/profile"
               element={
-                <ProtectedRoute allowedRoles={["farmer"]}>
+                <ProtectedRoute allowedRoles={["farmer", "buyer", "fpo"]}>
                   <Profile />
                 </ProtectedRoute>
               }

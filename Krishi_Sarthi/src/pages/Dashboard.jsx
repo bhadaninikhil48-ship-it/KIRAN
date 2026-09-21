@@ -21,6 +21,7 @@ import { animateStagger, animateCounter } from "../utils/animations";
 import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
+import { Avatar } from "../components/ui/Avatar";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../services/api";
 
@@ -217,50 +218,156 @@ export function Dashboard() {
   const topMarketPrice = marketPrices[0];
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* Greeting Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-emerald-900 to-emerald-800 text-white p-5 sm:p-7 rounded-2xl shadow-sm">
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
-              KIRAN Live Exchange
-            </span>
+    <div ref={cardsContainerRef} className="space-y-6 sm:space-y-8">
+      {/* 1. Good Morning / Welcome Banner (with User Profile Avatar) */}
+      <div className="dashboard-card flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-emerald-900 to-emerald-800 text-white p-5 sm:p-7 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-4 sm:gap-5">
+          <Link
+            to="/profile"
+            title="View & Edit Profile Photo"
+            className="shrink-0 transition-transform hover:scale-105"
+          >
+            <Avatar
+              src={user?.avatar}
+              name={user?.name || "Farmer"}
+              role={user?.role || "farmer"}
+              size="xl"
+              ring
+              className="border-2 border-emerald-400/30 shadow-md"
+            />
+          </Link>
 
-            <span className="text-xs text-emerald-200">
-              {t("dashboard.mandiSession")}
-            </span>
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
+                KIRAN Live Exchange
+              </span>
+
+              <span className="text-xs text-emerald-200">
+                {t("dashboard.mandiSession")}
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white truncate">
+              {t("dashboard.greeting")}, {user?.name || "Farmer"}
+            </h1>
+
+            <p className="text-emerald-100/90 text-sm max-w-xl">
+              {t("dashboard.subtitle")}
+            </p>
           </div>
-
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-            {t("dashboard.greeting")}, {user?.name || "Farmer"}
-          </h1>
-
-          <p className="text-emerald-100/90 text-sm max-w-xl">
-            {t("dashboard.subtitle")}
-          </p>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <Link to="/sell">
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+          <Link to="/sell?action=new" state={{ newCrop: true }}>
             <Button
               variant="secondary"
               size="sm"
-              className="bg-white text-emerald-900 hover:bg-emerald-50 border-none font-semibold"
+              className="bg-white text-emerald-950 hover:bg-emerald-50 font-bold border border-white shadow-sm"
               icon={ShoppingBasket}
             >
               {t("dashboard.listProduce")}
             </Button>
           </Link>
 
+          {/* View Best Match Button - ALWAYS visible, distinct border and high contrast */}
           <Link to="/opportunities">
             <Button
-              variant="outline"
+              variant="primary"
               size="sm"
-              className="bg-emerald-800/60 text-white border-emerald-600 hover:bg-emerald-700"
+              className="bg-emerald-800 text-white border-2 border-emerald-300/80 hover:bg-emerald-700 hover:border-emerald-200 font-bold shadow-sm"
               icon={TrendingUp}
             >
               {t("dashboard.viewBestMatch")}
             </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. Quick Actions (Exact Order: 1. Market Prices, 2. Sell Produce, 3. Find Buyers, 4. Transactions) */}
+      <div ref={actionsRef} className="dashboard-card space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base sm:text-lg font-bold text-gray-900">
+            {t("dashboard.quickActions")}
+          </h2>
+
+          <span className="text-xs text-gray-500 font-medium">
+            {t("dashboard.directAccess")}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {/* Action 1: Market Prices */}
+          <Link
+            to="/markets"
+            className="bg-white border border-gray-200/90 hover:border-blue-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Store size={20} />
+            </div>
+
+            <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-blue-700 transition-colors">
+              {t("dashboard.marketPrices")}
+            </p>
+
+            <p className="text-xs text-gray-500 mt-1">
+              {t("dashboard.marketPricesDescription")}
+            </p>
+          </Link>
+
+          {/* Action 2: Sell Produce (Navigates directly to Sell New Crop) */}
+          <Link
+            to="/sell?action=new"
+            state={{ newCrop: true }}
+            className="bg-white border border-gray-200/90 hover:border-emerald-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <ShoppingBasket size={20} />
+            </div>
+
+            <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-emerald-700 transition-colors">
+              {t("dashboard.sellProduce")}
+            </p>
+
+            <p className="text-xs text-gray-500 mt-1">
+              {t("dashboard.sellProduceDescription")}
+            </p>
+          </Link>
+
+          {/* Action 3: Find Buyers */}
+          <Link
+            to="/buyers"
+            className="bg-white border border-gray-200/90 hover:border-purple-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <Users size={20} />
+            </div>
+
+            <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-purple-700 transition-colors">
+              {t("dashboard.findBuyers")}
+            </p>
+
+            <p className="text-xs text-gray-500 mt-1">
+              {t("dashboard.findBuyersDescription")}
+            </p>
+          </Link>
+
+          {/* Action 4: Transactions */}
+          <Link
+            to="/transactions"
+            className="bg-white border border-gray-200/90 hover:border-amber-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
+          >
+            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+              <ReceiptText size={20} />
+            </div>
+
+            <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-amber-700 transition-colors">
+              {t("dashboard.transactions")}
+            </p>
+
+            <p className="text-xs text-gray-500 mt-1">
+              {t("dashboard.transactionsDescription")}
+            </p>
           </Link>
         </div>
       </div>
@@ -311,7 +418,7 @@ export function Dashboard() {
       </div>
 
       {/* Grid container */}
-      <div ref={cardsContainerRef} className="space-y-6">
+      <div className="space-y-6">
         {/* Market Intelligence & Farmer Produce */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
           {/* Today's Market Price Card */}
@@ -430,7 +537,8 @@ export function Dashboard() {
               </div>
 
               <Link
-                to="/sell"
+                to="/sell?action=new"
+                state={{ newCrop: true }}
                 className="text-emerald-600 hover:text-emerald-700 font-semibold flex items-center gap-0.5 hover:underline"
               >
                 {activeLot ? t("dashboard.updateLot") : "+ List Harvest"}
@@ -673,89 +781,6 @@ export function Dashboard() {
             </div>
           )}
         </Card>
-
-        {/* Quick Actions */}
-        <div ref={actionsRef} className="dashboard-card space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-bold text-gray-900">
-              {t("dashboard.quickActions")}
-            </h2>
-
-            <span className="text-xs text-gray-500 font-medium">
-              {t("dashboard.directAccess")}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Link
-              to="/sell"
-              className="bg-white border border-gray-200/90 hover:border-emerald-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <ShoppingBasket size={20} />
-              </div>
-
-              <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-emerald-700 transition-colors">
-                {t("dashboard.sellProduce")}
-              </p>
-
-              <p className="text-xs text-gray-500 mt-1">
-                {t("dashboard.sellProduceDescription")}
-              </p>
-            </Link>
-
-            <Link
-              to="/markets"
-              className="bg-white border border-gray-200/90 hover:border-emerald-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <Store size={20} />
-              </div>
-
-              <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-blue-700 transition-colors">
-                {t("dashboard.marketPrices")}
-              </p>
-
-              <p className="text-xs text-gray-500 mt-1">
-                {t("dashboard.marketPricesDescription")}
-              </p>
-            </Link>
-
-            <Link
-              to="/buyers"
-              className="bg-white border border-gray-200/90 hover:border-emerald-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <Users size={20} />
-              </div>
-
-              <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-purple-700 transition-colors">
-                {t("dashboard.findBuyers")}
-              </p>
-
-              <p className="text-xs text-gray-500 mt-1">
-                {t("dashboard.findBuyersDescription")}
-              </p>
-            </Link>
-
-            <Link
-              to="/transactions"
-              className="bg-white border border-gray-200/90 hover:border-emerald-500 hover:shadow-sm rounded-xl p-4 sm:p-5 transition-all text-left group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-                <ReceiptText size={20} />
-              </div>
-
-              <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-amber-700 transition-colors">
-                {t("dashboard.transactions")}
-              </p>
-
-              <p className="text-xs text-gray-500 mt-1">
-                {t("dashboard.transactionsDescription")}
-              </p>
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   );
