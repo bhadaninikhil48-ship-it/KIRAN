@@ -323,7 +323,7 @@ export function Navbar({ onMenuToggle }) {
             type="button"
             onClick={() => {
               logout();
-              navigate("/login");
+              navigate("/", { replace: true });
             }}
             title="Sign Out"
             aria-label="Sign Out"

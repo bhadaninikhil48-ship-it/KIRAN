@@ -20,7 +20,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 const farmerNavItems = [
-  { to: "/", key: "Dashboard", label: "Farmer Dashboard", icon: LayoutDashboard },
+  { to: "/farmer/dashboard", key: "Dashboard", label: "Farmer Dashboard", icon: LayoutDashboard },
   { to: "/sell", key: "Sell Produce", label: "Sell Produce", icon: ShoppingBasket },
   { to: "/markets", key: "Market Intelligence", label: "Market Intelligence", icon: Store },
   { to: "/opportunities", key: "Best Opportunities", label: "Best Opportunities", icon: TrendingUp },

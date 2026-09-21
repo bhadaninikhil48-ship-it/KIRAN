@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -8,6 +8,7 @@ import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import FloatingVoiceAssistant from "./components/FloatingVoiceAssistant";
 import { LoadingState } from "./components/ui/LoadingState";
+import LandingPage from "./pages/LandingPage";
 
 // Auth Pages
 import Login from "./pages/auth/Login";
@@ -71,9 +72,15 @@ function AppLayout() {
   );
 }
 
-// Smart root handler that directs user according to their role
+// Smart root handler: exposes public Landing Page for guests, role dashboard for members
 function HomeRoute() {
-  const { user, token, loading } = useContext(AuthContext);
+  const { user, token, loading, isLoggingOut, clearLoggingOut } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (isLoggingOut) {
+      clearLoggingOut();
+    }
+  }, [isLoggingOut, clearLoggingOut]);
 
   if (loading) {
     return (
@@ -83,8 +90,19 @@ function HomeRoute() {
     );
   }
 
-  if (!token || !user) {
-    return <Navigate to="/login" replace />;
+  const loggingOut =
+    isLoggingOut ||
+    (() => {
+      try {
+        return sessionStorage.getItem("kiran_logout") === "true";
+      } catch {
+        return false;
+      }
+    })();
+
+  // If user just logged out, or has no session, render the public Landing Page (outside AppLayout, zero dashboard chrome)
+  if (loggingOut || !token || !user) {
+    return <LandingPage />;
   }
 
   if (user.role === "buyer") {
@@ -95,7 +113,7 @@ function HomeRoute() {
     return <Navigate to="/fpo/dashboard" replace />;
   }
 
-  return <Dashboard />;
+  return <Navigate to="/farmer/dashboard" replace />;
 }
 
 function App() {
@@ -103,6 +121,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public Landing Route (Outside AppLayout - Zero Dashboard Chrome) */}
+          <Route path="/" element={<HomeRoute />} />
+
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -110,8 +131,15 @@ function App() {
 
           {/* Authenticated Platform App Layout */}
           <Route element={<AppLayout />}>
-            {/* Smart Home Route */}
-            <Route path="/" element={<HomeRoute />} />
+            {/* Farmer Dashboard Protected Route */}
+            <Route
+              path="/farmer/dashboard"
+              element={
+                <ProtectedRoute allowedRoles={["farmer"]}>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Farmer Protected Routes */}
             <Route

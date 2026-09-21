@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { LoadingState } from "./ui/LoadingState";
 
 export function ProtectedRoute({ children, allowedRoles }) {
-  const { user, token, loading } = useContext(AuthContext);
+  const { user, token, loading, isLoggingOut } = useContext(AuthContext);
   const location = useLocation();
 
   if (loading) {
@@ -13,6 +13,21 @@ export function ProtectedRoute({ children, allowedRoles }) {
         <LoadingState message="Verifying session..." />
       </div>
     );
+  }
+
+  // If a logout is currently in progress, navigate cleanly to "/" instead of "/login"
+  const loggingOut =
+    isLoggingOut ||
+    (() => {
+      try {
+        return sessionStorage.getItem("kiran_logout") === "true";
+      } catch {
+        return false;
+      }
+    })();
+
+  if (loggingOut) {
+    return <Navigate to="/" replace />;
   }
 
   if (!token || !user) {

@@ -95,7 +95,25 @@ export const AuthProvider = ({ children }) => {
     verifySession();
   }, []);
 
+  const [isLoggingOut, setIsLoggingOut] = useState(() => {
+    try {
+      return sessionStorage.getItem("kiran_logout") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const clearLoggingOut = () => {
+    try {
+      sessionStorage.removeItem("kiran_logout");
+    } catch {
+      // Ignore storage errors
+    }
+    setIsLoggingOut(false);
+  };
+
   const login = (userData, jwtToken) => {
+    clearLoggingOut();
     const cachedAvatar =
       userData?.avatar ||
       (userData?.id ? localStorage.getItem(`kiran_avatar_${userData.id}`) : null);
@@ -110,6 +128,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    try {
+      sessionStorage.setItem("kiran_logout", "true");
+    } catch {
+      // Ignore storage errors
+    }
+    setIsLoggingOut(true);
     setUser(null);
     setToken(null);
     localStorage.removeItem("user");
@@ -146,6 +170,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         logout,
+        clearLoggingOut,
+        isLoggingOut,
         updateUser,
         isAuthenticated: !!token && !!user,
       }}
