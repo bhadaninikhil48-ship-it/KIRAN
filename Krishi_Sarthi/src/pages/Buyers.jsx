@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Send,
   Users,
+  Truck,
 } from "lucide-react";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -19,18 +20,30 @@ import { Modal } from "../components/ui/Modal";
 import { Badge } from "../components/ui/Badge";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { Avatar } from "../components/ui/Avatar";
+import { CropImage } from "../components/ui/CropImage";
 import { animateStagger } from "../utils/animations";
 import { api } from "../services/api";
+import { AuthContext } from "../context/AuthContext";
+import { BuyerProfileModal, resolveBuyerProfile } from "../components/BuyerProfileModal";
+import { BuyerOfferDetailsModal } from "../components/BuyerOfferDetailsModal";
+import { calculateTransitDistance } from "../utils/distanceCalculator";
 
 export function Buyers() {
+  const { user } = useContext(AuthContext);
+
+  const farmerOrigin =
+    (user?.district && user?.state ? `${user.district}, ${user.state}` : null) ||
+    (user?.village && user?.state ? `${user.village}, ${user.state}` : null) ||
+    user?.location?.replace(" • ", ", ") ||
+    (user?.id && localStorage.getItem(`kiran_location_${user.id}`)?.replace(" • ", ", ")) ||
+    "Indore, Madhya Pradesh";
+
   const [buyers, setBuyers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [cropFilter, setCropFilter] = useState("All");
   const [sortBy, setSortBy] = useState("priceDesc");
-
-  const [farmerProduce, setFarmerProduce] = useState([]);
-  const [produceLoading, setProduceLoading] = useState(true);
 
   // Offer modal states
   const [selectedBuyer, setSelectedBuyer] = useState(null);
@@ -42,6 +55,14 @@ export function Buyers() {
   const [offerError, setOfferError] = useState("");
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [createdOfferData, setCreatedOfferData] = useState(null);
+
+  // Buyer Profile Modal state
+  const [selectedBuyerForProfile, setSelectedBuyerForProfile] = useState(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Buyer Offer Details Modal state
+  const [selectedOfferForDetails, setSelectedOfferForDetails] = useState(null);
+  const [offerDetailsModalOpen, setOfferDetailsModalOpen] = useState(false);
 
   const containerRef = useRef(null);
 
@@ -356,7 +377,20 @@ export function Buyers() {
       });
   }, [buyers, searchQuery, cropFilter, sortBy]);
 
-  const handleOpenOffer = (buyerReq) => {
+  const handleOpenBuyerProfile = (buyerReq, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setSelectedBuyerForProfile(buyerReq);
+    setProfileModalOpen(true);
+  };
+
+  const handleOpenOfferDetails = (buyerReq, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    setSelectedOfferForDetails(buyerReq);
+    setOfferDetailsModalOpen(true);
+  };
+
+  const handleOpenOffer = (buyerReq, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     setSelectedBuyer(buyerReq);
     setOfferPrice(buyerReq.max_price || "");
     setOfferQuantity(buyerReq.quantity || "");
@@ -383,7 +417,7 @@ export function Buyers() {
       const res = await api.post("/api/offers", payload);
       setCreatedOfferData({
         offerId: res.offerId,
-        buyerName: selectedBuyer.buyer_name || "Institutional Buyer",
+        buyerName: selectedBuyer.buyer_name || resolveBuyerProfile(selectedBuyer).name || "Institutional Buyer",
         crop: selectedBuyer.crop_name,
         price: offerPrice,
         quantity: offerQuantity,
@@ -466,79 +500,185 @@ export function Buyers() {
           icon={Users}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          {filteredBuyers.map((b) => (
-            <Card
-              key={b.id}
-              className="buyer-card-anim border-gray-200/90 hover:border-emerald-400 p-5 space-y-4 transition-all hover:shadow-xs"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-gray-900 text-base">
-                      {b.buyer_name || "Verified Buyer"}
-                    </h3>
-                    <Badge variant="emerald" dot>
-                      Open Order
-                    </Badge>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {filteredBuyers.map((b) => {
+            const profile = resolveBuyerProfile(b);
+            const buyerLoc = b.location || profile.location || "Delivery Point on Request";
+            const transitInfo = calculateTransitDistance(farmerOrigin, buyerLoc);
+            const ceilingRate = b.max_price ? `₹${Number(b.max_price).toLocaleString()}` : "Open";
+
+            return (
+              <Card
+                key={b.id}
+                className="buyer-card-anim border-gray-200/90 hover:border-emerald-400/80 p-5 sm:p-6 transition-all hover:shadow-md bg-white rounded-2xl flex flex-col justify-between space-y-4"
+              >
+                {/* Top Section: Buyer Identity (Left) & Clickable Ceiling Rate (Right) */}
+                <div className="flex items-start justify-between gap-4">
+                  {/* Clickable Buyer Identity */}
+                  <div
+                    onClick={(e) => handleOpenBuyerProfile(b, e)}
+                    className="group flex items-start gap-3.5 cursor-pointer select-none min-w-0"
+                    title="Click to view verified buyer profile & track record"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleOpenBuyerProfile(b, e);
+                      }
+                    }}
+                  >
+                    <div className="relative shrink-0">
+                      <Avatar
+                        name={profile.name}
+                        src={profile.avatar}
+                        role="buyer"
+                        size="lg"
+                        ring
+                        className="ring-blue-500/20 group-hover:ring-emerald-500/60 transition-all shadow-xs"
+                      />
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-bold text-gray-900 text-base sm:text-lg group-hover:text-emerald-700 transition-colors truncate">
+                          {profile.name}
+                        </h3>
+                        <CheckCircle2
+                          size={16}
+                          className="text-emerald-600 shrink-0"
+                          title="Verified Buyer"
+                        />
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1.5 mt-0.5 truncate">
+                        <MapPin size={14} className="text-emerald-600 shrink-0" />
+                        <span className="truncate">{buyerLoc}</span>
+                      </p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <Badge variant="emerald" dot className="text-[11px] py-0.5">
+                          Open Order
+                        </Badge>
+                        <span className="text-[11px] text-gray-400 group-hover:text-emerald-600 transition-colors flex items-center gap-0.5 font-medium">
+                          View Profile <ArrowRight size={10} />
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                    <MapPin size={13} className="text-gray-400" />
-                    {b.location || "Delivery Point on Request"}
-                  </p>
+
+                  {/* Clickable Ceiling Rate Area */}
+                  <div
+                    onClick={(e) => handleOpenOfferDetails(b, e)}
+                    className="cursor-pointer text-right select-none p-2.5 rounded-xl bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/90 hover:border-emerald-300 transition-all shrink-0 group"
+                    title="Click to view full offer breakdown & corridor specs"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleOpenOfferDetails(b, e);
+                      }
+                    }}
+                  >
+                    <span className="text-[10px] sm:text-xs text-gray-500 font-bold block uppercase tracking-wider">
+                      Ceiling Rate
+                    </span>
+                    <div className="flex items-baseline justify-end gap-1">
+                      <span className="text-xl sm:text-2xl font-black text-emerald-700 group-hover:text-emerald-800 transition-colors">
+                        {ceilingRate}
+                      </span>
+                      <span className="text-xs text-gray-500 font-medium">
+                        /{b.unit || "qtl"}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-emerald-700 font-bold group-hover:underline flex items-center justify-end gap-0.5 mt-0.5">
+                      Offer Details <ArrowRight size={11} />
+                    </span>
+                  </div>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-xs text-gray-400 block">Ceiling Rate</span>
-                  <span className="text-xl font-extrabold text-emerald-700">
-                    {b.max_price ? `₹${Number(b.max_price).toLocaleString()}` : "Open"}
+                {/* Requirement Specs Grid */}
+                <div className="bg-gray-50/90 border border-gray-100 rounded-xl p-3.5 grid grid-cols-3 gap-2.5 text-xs sm:text-sm items-center">
+                  <div className="flex items-center gap-2.5">
+                    <CropImage
+                      crop={b.crop_name}
+                      size="card"
+                      className="rounded-xl shadow-xs shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <span className="text-gray-400 text-[11px] block font-medium">Crop</span>
+                      <span className="font-bold text-gray-900 truncate text-sm sm:text-base block">
+                        {b.crop_name}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 text-[11px] block font-medium">Volume Needed</span>
+                    <span className="font-bold text-gray-900 flex items-center gap-1.5 mt-0.5 text-sm sm:text-base">
+                      <Package size={15} className="text-emerald-600 shrink-0" />
+                      {Number(b.quantity || 0).toLocaleString()} {b.unit || "qtl"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-gray-400 text-[11px] block font-medium">Need By</span>
+                    <span className="font-semibold text-gray-800 flex items-center gap-1.5 mt-0.5 text-xs sm:text-sm truncate">
+                      <Calendar size={14} className="text-blue-600 shrink-0" />
+                      {b.required_by ? b.required_by.split("T")[0] : "Prompt Dispatch"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Transit Distance & Quality Grade Specs */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium ${
+                      transitInfo.isEstimable
+                        ? "bg-blue-50/80 text-blue-900 border-blue-200/80"
+                        : "bg-gray-50 text-gray-500 border-gray-200"
+                    }`}
+                    title={transitInfo.note}
+                  >
+                    <Truck
+                      size={14}
+                      className={transitInfo.isEstimable ? "text-blue-600 shrink-0" : "text-gray-400 shrink-0"}
+                    />
+                    <span>
+                      {transitInfo.isEstimable ? (
+                        <>
+                          Transit Corridor: <strong className="font-bold text-blue-950">{transitInfo.formatted}</strong>
+                          {transitInfo.estimatedHours ? ` (${transitInfo.estimatedHours})` : ""}
+                        </>
+                      ) : (
+                        "Transit Corridor: Distance unavailable"
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="text-gray-600 text-xs">
+                    Target Grade: <strong className="text-gray-900 font-semibold">{b.quality_grade || "Any Quality"}</strong>
+                  </div>
+                </div>
+
+                {/* Card Action Button */}
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-500 hidden sm:inline">
+                    Official KIRAN Verified Requirement
                   </span>
-                  <span className="text-xs text-gray-500"> / {b.unit}</span>
+
+                  <Button
+                    size="md"
+                    variant="primary"
+                    onClick={(e) => handleOpenOffer(b, e)}
+                    icon={Send}
+                    className="w-full sm:w-auto font-bold shadow-xs hover:shadow-sm"
+                  >
+                    Send Proposal
+                  </Button>
                 </div>
-              </div>
-
-              {/* Requirement Specs */}
-              <div className="bg-gray-50 rounded-xl p-3 grid grid-cols-3 gap-2 text-xs">
-                <div>
-                  <span className="text-gray-400 block">Crop</span>
-                  <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
-                    🌾 {b.crop_name}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-gray-400 block">Volume Needed</span>
-                  <span className="font-bold text-gray-800 flex items-center gap-1 mt-0.5">
-                    <Package size={13} className="text-gray-400" />
-                    {b.quantity} {b.unit}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-gray-400 block">Need By</span>
-                  <span className="font-semibold text-gray-700 flex items-center gap-1 mt-0.5">
-                    <Calendar size={13} className="text-gray-400" />
-                    {b.required_by ? b.required_by.split("T")[0] : "Urgent"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-2 flex items-center justify-between">
-                <span className="text-xs text-gray-500">
-                  Target Grade: <strong>{b.quality_grade || "Any Quality"}</strong>
-                </span>
-
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => handleOpenOffer(b)}
-                  icon={Send}
-                >
-                  Send Proposal
-                </Button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -547,9 +687,19 @@ export function Buyers() {
         <Modal
           isOpen={offerModalOpen}
           onClose={() => setOfferModalOpen(false)}
-          title={`Submit Offer to ${selectedBuyer.buyer_name || "Buyer"}`}
+          title={`Submit Offer to ${selectedBuyer.buyer_name || resolveBuyerProfile(selectedBuyer).name || "Buyer"}`}
           subtitle={`Requirement: ${selectedBuyer.quantity} ${selectedBuyer.unit} of ${selectedBuyer.crop_name}`}
         >
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200/80 mb-4">
+            <CropImage crop={selectedBuyer.crop_name} size="card" className="rounded-xl shadow-xs shrink-0" />
+            <div>
+              <h4 className="font-bold text-gray-900 text-base">{selectedBuyer.crop_name}</h4>
+              <p className="text-xs text-gray-600">
+                Procurement Demand: <strong>{selectedBuyer.quantity} {selectedBuyer.unit}</strong> • Ceiling: <strong>₹{selectedBuyer.max_price || "Open"}</strong>
+              </p>
+            </div>
+          </div>
+
           <form onSubmit={handleSendOfferSubmit} className="space-y-4">
             {offerError && (
               <div className="p-3 rounded-lg bg-red-50 text-xs text-red-700 flex items-center gap-2">
@@ -624,7 +774,14 @@ export function Buyers() {
           </div>
 
           {createdOfferData && (
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-xs sm:text-sm text-gray-700">
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3 text-xs sm:text-sm text-gray-700">
+              <div className="flex items-center gap-3 pb-2.5 border-b border-gray-200">
+                <CropImage crop={createdOfferData.crop} size="card" className="rounded-xl shadow-xs shrink-0" />
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase">Committed Crop</span>
+                  <h4 className="font-bold text-gray-900 text-base">{createdOfferData.crop}</h4>
+                </div>
+              </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Offer Tracking ID:</span>
                 <span className="font-bold text-gray-900">#KS-OFFER-{createdOfferData.offerId}</span>
@@ -665,6 +822,30 @@ export function Buyers() {
           </div>
         </div>
       </Modal>
+
+      {/* Buyer Profile & Trust History Modal */}
+      <BuyerProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        requirement={selectedBuyerForProfile}
+        onSendOffer={(req) => {
+          setProfileModalOpen(false);
+          handleOpenOffer(req);
+        }}
+      />
+
+      {/* Buyer Requirement Offer Details Modal */}
+      <BuyerOfferDetailsModal
+        isOpen={offerDetailsModalOpen}
+        onClose={() => setOfferDetailsModalOpen(false)}
+        requirement={selectedOfferForDetails}
+        farmerOrigin={farmerOrigin}
+        onSendProposal={(req) => {
+          setOfferDetailsModalOpen(false);
+          handleOpenOffer(req);
+        }}
+        sendActionLabel="Send Proposal"
+      />
     </div>
   );
 }

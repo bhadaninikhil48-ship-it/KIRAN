@@ -294,8 +294,16 @@ export const getMyOffers = async (req, res) => {
                 buyer_requirements.max_price,
                 buyer_requirements.location,
                 buyer_requirements.required_by,
+                buyer_requirements.buyer_id,
 
-                users.name AS buyer_name
+                users.name AS buyer_name,
+
+                (SELECT COUNT(*) FROM offer_negotiations WHERE offer_id = offers.id) AS negotiation_count,
+                (SELECT sender_role FROM offer_negotiations WHERE offer_id = offers.id ORDER BY created_at DESC, id DESC LIMIT 1) AS latest_sender_role,
+                (SELECT price FROM offer_negotiations WHERE offer_id = offers.id ORDER BY created_at DESC, id DESC LIMIT 1) AS latest_counter_price,
+                (SELECT quantity FROM offer_negotiations WHERE offer_id = offers.id ORDER BY created_at DESC, id DESC LIMIT 1) AS latest_counter_quantity,
+                (SELECT message FROM offer_negotiations WHERE offer_id = offers.id ORDER BY created_at DESC, id DESC LIMIT 1) AS latest_counter_message,
+                (SELECT created_at FROM offer_negotiations WHERE offer_id = offers.id ORDER BY created_at DESC, id DESC LIMIT 1) AS latest_counter_date
 
              FROM offers
 

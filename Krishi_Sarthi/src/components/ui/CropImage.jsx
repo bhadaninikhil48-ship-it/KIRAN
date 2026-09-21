@@ -1,64 +1,101 @@
-import { useState, useEffect } from "react";
-import { getCropImage, FALLBACK_CROP_IMAGE } from "../../utils/cropImages";
+import { useState } from "react";
+import { getCropImage } from "../../utils/cropImageMap";
 
 /**
- * Reusable CropImage component for consistent produce visual presentation across the Buyer application.
- *
- * Automatically resolves realistic vector produce graphics for known crops (Banana, Potato, Carrot,
- * Garlic/Lasun, Tomato, Onion, Wheat, Rice, Soybean, Litchi, etc.) and falls back to a neutral produce
- * crate/sprout visual for test or unrecognized crop names.
+ * CropImage Component
+ * 
+ * CORE PRODUCT PURPOSE:
+ * Serves as a PRIMARY CROP-RECOGNITION / ACCESSIBILITY FEATURE for farmers with limited literacy.
+ * Renders large, recognizable, natural agricultural produce photography so that the user
+ * can visually identify the crop immediately (e.g. "Ye aaloo hai") without reading text.
+ * 
+ * Context Sizes:
+ * - 'xs': 24x24px (compact chips/indicators)
+ * - 'sm': 36x36px (list rows/specs)
+ * - 'md': 48x48px (standard cards)
+ * - 'table': 56-64px (Market Intelligence commodity table rows)
+ * - 'card': 56-64px (buyer cards, offer cards, dashboard cards)
+ * - 'lg': 64-80px (Active produce listings, consignment cards)
+ * - 'lot': 80-96px (Active Farm Lot hero card)
+ * - 'preview': 96-112px (Sell New Crop form selection visual confirmation)
+ * - 'xl': 112-128px (large detail views)
  */
 export function CropImage({
-  cropName,
+  crop = "Wheat",
   size = "md",
+  shape = "rounded",
   className = "",
-  imageClassName = "",
   alt,
-  rounded = "rounded-2xl",
-  bordered = true,
-  shadow = true,
-  hoverEffect = true,
+  showCategoryBadge = false,
 }) {
-  const resolvedSrc = getCropImage(cropName);
-  const [currentSrc, setCurrentSrc] = useState(resolvedSrc);
+  const [hasError, setHasError] = useState(false);
 
-  // Update image source if cropName changes dynamically
-  useEffect(() => {
-    setCurrentSrc(getCropImage(cropName));
-  }, [cropName]);
+  const cropData = getCropImage(crop);
 
-  // Size mapping
+  // Sizing definitions mapped to Tailwind classes
   const sizeClasses = {
-    xs: "w-8 h-8 p-1 rounded-lg",
-    sm: "w-11 h-11 sm:w-12 sm:h-12 p-1.5 rounded-xl",
-    md: "w-14 h-14 sm:w-16 sm:h-16 p-1.5 rounded-2xl",
-    lg: "w-20 h-20 p-2 rounded-2xl",
-    xl: "w-24 h-24 p-2.5 rounded-3xl",
-  };
+    xs: "w-6 h-6 text-xs",
+    sm: "w-9 h-9 text-sm",
+    md: "w-12 h-12 text-base",
+    table: "w-14 h-14 sm:w-16 sm:h-16 text-xl",
+    card: "w-14 h-14 sm:w-16 sm:h-16 text-xl",
+    lg: "w-16 h-16 sm:w-20 sm:h-20 text-2xl",
+    lot: "w-20 h-20 sm:w-24 sm:h-24 text-3xl",
+    preview: "w-24 h-24 sm:w-28 sm:h-28 text-4xl",
+    xl: "w-28 h-28 sm:w-32 sm:h-32 text-4xl",
+  }[size] || "w-12 h-12 text-base";
 
-  const chosenSizeClass = sizeClasses[size] || sizeClasses.md;
-  const borderClass = bordered ? "border border-gray-100/90" : "";
-  const shadowClass = shadow ? "shadow-2xs" : "";
-  const hoverClass = hoverEffect ? "group-hover:scale-105 transition-transform duration-200" : "";
+  // Shape definitions
+  const shapeClasses = {
+    rounded: "rounded-xl",
+    circle: "rounded-full",
+    square: "rounded-lg",
+  }[shape] || "rounded-xl";
 
-  const effectiveAlt =
-    alt || (cropName ? `Fresh ${cropName} produce` : "Agricultural produce");
+  // Category-based emergency fallback colors
+  const categoryBg = {
+    Cereals: "bg-amber-100 text-amber-800 border-amber-200",
+    Millets: "bg-amber-100 text-amber-800 border-amber-200",
+    Vegetables: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    Fruits: "bg-orange-100 text-orange-800 border-orange-200",
+    Pulses: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    Oilseeds: "bg-lime-100 text-lime-800 border-lime-200",
+    Spices: "bg-amber-100 text-amber-900 border-amber-200",
+    "Cash Crops": "bg-slate-100 text-slate-800 border-slate-200",
+    "Dry Fruits": "bg-amber-100 text-amber-900 border-amber-200",
+    Flowers: "bg-pink-100 text-pink-800 border-pink-200",
+    Fodder: "bg-emerald-100 text-emerald-800 border-emerald-200",
+  }[cropData.category] || "bg-emerald-100 text-emerald-800 border-emerald-200";
+
+  const displayAlt = alt || cropData.alt || `${crop} natural produce photograph`;
 
   return (
     <div
-      className={`overflow-hidden shrink-0 bg-gray-50/80 flex items-center justify-center select-none ${chosenSizeClass} ${borderClass} ${shadowClass} ${hoverClass} ${className}`}
-      title={cropName || "Agricultural Commodity"}
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden border border-gray-200/90 shadow-2xs select-none bg-gray-50 ${sizeClasses} ${shapeClasses} ${className}`}
+      title={crop}
     >
-      <img
-        src={currentSrc}
-        alt={effectiveAlt}
-        className={`w-full h-full object-contain pointer-events-none ${imageClassName}`}
-        onError={() => {
-          if (currentSrc !== FALLBACK_CROP_IMAGE) {
-            setCurrentSrc(FALLBACK_CROP_IMAGE);
-          }
-        }}
-      />
+      {!hasError && cropData.url ? (
+        <img
+          src={cropData.url}
+          alt={displayAlt}
+          loading="lazy"
+          onError={() => setHasError(true)}
+          className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+        />
+      ) : (
+        /* Emergency Fallback (offline or failed network request) */
+        <div
+          className={`w-full h-full flex flex-col items-center justify-center border font-bold ${categoryBg}`}
+        >
+          <span>{cropData.fallbackEmoji || "🌾"}</span>
+        </div>
+      )}
+
+      {showCategoryBadge && cropData.category && (
+        <span className="absolute bottom-0 right-0 px-1 py-0.5 text-[9px] font-bold bg-black/60 text-white rounded-tl backdrop-blur-xs">
+          {cropData.category}
+        </span>
+      )}
     </div>
   );
 }

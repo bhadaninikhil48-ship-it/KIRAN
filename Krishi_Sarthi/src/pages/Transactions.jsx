@@ -22,6 +22,7 @@ import { StatusBadge } from "../components/ui/StatusBadge";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { animateReveal } from "../utils/animations";
+import { CropImage } from "../components/ui/CropImage";
 import api from "../services/api";
 
 export function Transactions() {
@@ -192,13 +193,14 @@ export function Transactions() {
                     setSelectedContractId(c.id);
                     setDeliveryStatus("Pending");
                   }}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                     selectedContractId === c.id
                       ? "bg-emerald-700 text-white shadow-xs"
                       : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
                   }`}
                 >
-                  #{c.id} • {c.crop_name} ({c.quantity} {c.unit})
+                  <CropImage crop={c.crop_name} size="xs" className="rounded shrink-0" />
+                  <span>#{c.id} • {c.crop_name} ({c.quantity} {c.unit})</span>
                 </button>
               ))}
             </div>
@@ -274,19 +276,26 @@ export function Transactions() {
           {/* Active Transaction Details Card */}
           <Card className="border-gray-200/90 hover:border-emerald-300">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                    {activeContract.buyer_name ? `${activeContract.buyer_name} Consignment` : "Buyer Consignment"}
-                  </h2>
-                  <StatusBadge status={activeContract.status === "active" ? "Confirmed" : activeContract.status || "Confirmed"} />
+              <div className="flex items-start gap-3.5">
+                <CropImage
+                  crop={activeContract.crop_name}
+                  size="card"
+                  className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                />
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                      {activeContract.buyer_name ? `${activeContract.buyer_name} Consignment` : "Buyer Consignment"}
+                    </h2>
+                    <StatusBadge status={activeContract.status === "active" ? "Confirmed" : activeContract.status || "Confirmed"} />
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                    Produce Lot: <strong>{activeContract.crop_name}</strong>
+                    {activeContract.quality_grade ? ` (${activeContract.quality_grade})` : ""} •{" "}
+                    {Number(activeContract.quantity).toLocaleString()} {activeContract.unit} •{" "}
+                    Delivery to: <strong>{activeContract.delivery_location || "Buyer Warehouse"}</strong>
+                  </p>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                  Produce Lot: <strong>{activeContract.crop_name}</strong>
-                  {activeContract.quality_grade ? ` (${activeContract.quality_grade})` : ""} •{" "}
-                  {Number(activeContract.quantity).toLocaleString()} {activeContract.unit} •{" "}
-                  Delivery to: <strong>{activeContract.delivery_location || "Buyer Warehouse"}</strong>
-                </p>
               </div>
 
               <div className="flex sm:flex-col items-baseline sm:items-end justify-between gap-1">
@@ -444,24 +453,31 @@ export function Transactions() {
                     key={req.id}
                     className="bg-white border border-gray-200 hover:border-amber-400 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs transition-all"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h5 className="font-bold text-gray-900 text-sm sm:text-base">
-                          {req.buyer_name || "Enterprise Buyer"}
-                        </h5>
-                        <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
-                          {req.quality_grade || "Grade A"}
-                        </span>
+                    <div className="flex items-start gap-3">
+                      <CropImage
+                        crop={req.crop_name}
+                        size="card"
+                        className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h5 className="font-bold text-gray-900 text-sm sm:text-base">
+                            {req.buyer_name || "Enterprise Buyer"}
+                          </h5>
+                          <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                            {req.quality_grade || "Grade A"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-gray-800">{req.crop_name}</span>
+                          <span>•</span>
+                          <span>{Number(req.quantity).toLocaleString()} {req.unit}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <MapPin size={11} /> {req.delivery_location}
+                          </span>
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5 flex flex-wrap items-center gap-2">
-                        <span>{req.crop_name}</span>
-                        <span>•</span>
-                        <span>{Number(req.quantity).toLocaleString()} {req.unit}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <MapPin size={11} /> {req.delivery_location}
-                        </span>
-                      </p>
                     </div>
 
                     <div className="flex items-center gap-3 justify-between sm:justify-end">
@@ -496,11 +512,20 @@ export function Transactions() {
         subtitle={`Emergency reallocation routed to ${contactedBuyerModal?.buyer_name || "Buyer"}`}
       >
         <div className="space-y-4 text-xs sm:text-sm text-gray-700">
-          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900">
-            <p className="font-semibold">Deal Recovery Protocol Initiated.</p>
-            <p className="mt-1 text-xs text-emerald-800">
-              Buyer dispatch agent has acknowledged demand for <strong>{contactedBuyerModal?.crop_name}</strong>. Target price pegged at <strong>₹{contactedBuyerModal?.target_price} / {contactedBuyerModal?.unit}</strong>.
-            </p>
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex items-start gap-3">
+            {contactedBuyerModal?.crop_name && (
+              <CropImage
+                crop={contactedBuyerModal.crop_name}
+                size="card"
+                className="rounded-xl shadow-xs shrink-0 border border-emerald-300 mt-0.5"
+              />
+            )}
+            <div>
+              <p className="font-semibold">Deal Recovery Protocol Initiated.</p>
+              <p className="mt-1 text-xs text-emerald-800">
+                Buyer dispatch agent has acknowledged demand for <strong>{contactedBuyerModal?.crop_name}</strong>. Target price pegged at <strong>₹{contactedBuyerModal?.target_price} / {contactedBuyerModal?.unit}</strong>.
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2 border border-gray-100 p-3 rounded-lg bg-gray-50/50">

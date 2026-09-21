@@ -27,6 +27,7 @@ import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import { EmptyState } from "../components/ui/EmptyState";
 import { LoadingState } from "../components/ui/LoadingState";
+import { CropImage } from "../components/ui/CropImage";
 import { animateStagger } from "../utils/animations";
 
 import PriceTrend from "../components/PriceTrend";
@@ -594,12 +595,20 @@ export function MarketIntelligence() {
                         >
                           {/* Commodity */}
                           <td className="py-4 px-5">
-                            <div className="font-bold text-gray-900 text-base">
-                              {row.commodity}
-                            </div>
-                            <div className="text-xs text-gray-500 font-medium">
-                              {row.variety && row.variety !== "Other" ? row.variety : "Standard"}
-                              {row.grade ? ` • ${row.grade}` : ""}
+                            <div className="flex items-center gap-3.5">
+                              <CropImage
+                                crop={row.commodity}
+                                size="table"
+                                className="rounded-xl shadow-xs shrink-0"
+                              />
+                              <div>
+                                <div className="font-bold text-stone-900 text-base sm:text-lg leading-tight">
+                                  {row.commodity}
+                                </div>
+                                <span className="text-[11px] text-stone-500 font-medium mt-0.5 block">
+                                  Mandi Benchmark
+                                </span>
+                              </div>
                             </div>
                           </td>
 
@@ -693,19 +702,35 @@ export function MarketIntelligence() {
                     key={row.id}
                     className="p-4 border-gray-200/90 hover:border-emerald-300 transition-all shadow-xs"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h4 className="font-bold text-gray-900 text-base truncate">
-                          {row.commodity}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {row.market} • {row.district || row.state}
+
+                    <div className="flex items-start gap-3">
+                      <CropImage
+                        crop={row.commodity}
+                        size="card"
+                        className="rounded-xl shadow-xs shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="font-bold text-gray-900 text-base leading-tight">
+                            {row.market}
+                          </h4>
+                          <Badge variant="emerald" className="shrink-0 text-[11px]">
+                            {row.trend}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-600 font-medium mt-1">
+                          <strong className="text-gray-900">{row.commodity}</strong> • {row.state} • {row.distance} km away
                         </p>
                       </div>
+                    </div>
 
-                      <div className="text-right shrink-0">
-                        <span className="text-lg font-extrabold text-emerald-700">
-                          ₹{row.modalPrice.toLocaleString()}
+
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 text-xs">
+
+                      <div>
+
+                        <span className="text-gray-400 block">
+                          Modal Price
                         </span>
                         <span className="text-[10px] text-gray-400 block">/ quintal</span>
                       </div>
@@ -780,9 +805,19 @@ export function MarketIntelligence() {
                 </h3>
               </div>
 
-              <Badge variant="emerald" dot>
-                ↑ 8% Weekly
-              </Badge>
+        <Card className="hover:border-emerald-300">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <CropImage crop="Tomato" size="card" className="rounded-xl shadow-xs shrink-0" />
+              <div>
+                <span className="text-xs font-semibold text-gray-400 uppercase">
+                  Nashik APMC • Maharashtra
+                </span>
+
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-0.5">
+                  Tomato Modal Rate
+                </h3>
+              </div>
             </div>
 
             <div className="mt-3 flex items-baseline gap-1.5">

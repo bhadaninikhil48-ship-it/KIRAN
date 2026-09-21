@@ -20,8 +20,6 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { StatusBadge } from "../../components/ui/StatusBadge";
-import { Avatar } from "../../components/ui/Avatar";
-import { EmptyState } from "../../components/ui/EmptyState";
 import { CropImage } from "../../components/ui/CropImage";
 
 export function BuyerDashboard() {
@@ -359,41 +357,32 @@ export function BuyerDashboard() {
                 description="Make sure your requirements are published to receive competitive bids from verified farmers and FPOs."
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                {offers.slice(0, 4).map((offer) => {
-                  const estValue = (Number(offer.offer_price) || 0) * (Number(offer.quantity) || 0);
-
-                  return (
-                    <Card
-                      key={offer.id}
-                      className="p-5 sm:p-6 border-gray-200/90 hover:border-emerald-300 hover:shadow-xs transition-all duration-200 bg-white flex flex-col justify-between group"
-                    >
-                      <div>
-                        {/* Top Row: Crop Image + Spec & Status */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3 min-w-0">
-                            <CropImage cropName={offer.crop_name} size="sm" />
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <h3 className="font-bold text-gray-900 text-base sm:text-lg tracking-tight truncate">
-                                  {offer.crop_name}
-                                </h3>
-                                <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 rounded-full shrink-0">
-                                  {offer.quality_grade || "Grade A"}
-                                </span>
-                              </div>
-                            </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {offers.slice(0, 4).map((offer) => (
+                  <Card key={offer.id} className="p-5 border-gray-200 hover:border-emerald-300 transition-all">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <CropImage
+                          crop={offer.crop_name}
+                          size="card"
+                          className="rounded-xl shadow-xs shrink-0 border border-gray-200 mt-0.5"
+                        />
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-gray-900 text-base">
+                              {offer.crop_name}
+                            </h3>
+                            <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                              {offer.quality_grade || "Grade A"}
+                            </span>
                           </div>
-                          <StatusBadge
-                            status={
-                              offer.status === "pending"
-                                ? "Pending"
-                                : offer.status === "accepted"
-                                ? "Accepted"
-                                : "Rejected"
-                            }
-                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Farmer: <strong>{offer.farmer_name}</strong> • Requirement #{offer.requirement_id}
+                          </p>
                         </div>
+                      </div>
+                      <StatusBadge status={offer.status === "pending" ? "Pending" : offer.status === "accepted" ? "Accepted" : "Rejected"} />
+                    </div>
 
                         {/* Farmer Identity Row (Visually Polished & Respecting Data Availability) */}
                         <div className="mt-3.5 py-2.5 px-3 bg-gray-50/80 rounded-xl border border-gray-100 flex items-center justify-between">
@@ -507,42 +496,19 @@ export function BuyerDashboard() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
                 {requirements.slice(0, 3).map((req) => (
-                  <Card
-                    key={req.id}
-                    className="p-5 border-gray-200/90 hover:border-gray-300 transition-all bg-white hover:shadow-xs flex flex-col justify-between group"
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <CropImage cropName={req.crop_name} size="xs" />
-                          <h3 className="font-bold text-gray-900 text-base truncate" title={req.crop_name}>
-                            {req.crop_name}
-                          </h3>
-                        </div>
-                        <Badge variant={req.status === "open" ? "emerald" : "gray"} size="sm">
-                          {req.status.toUpperCase()}
-                        </Badge>
+                  <Card key={req.id} className="p-5 border-gray-200">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2.5">
+                        <CropImage
+                          crop={req.crop_name}
+                          size="sm"
+                          className="rounded-lg shadow-2xs shrink-0 border border-gray-200"
+                        />
+                        <h3 className="font-bold text-gray-900">{req.crop_name}</h3>
                       </div>
-                      <div className="text-xs space-y-2 text-gray-600 bg-gray-50/70 p-3 rounded-xl border border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-400">Demand Volume</span>
-                          <span className="font-semibold text-gray-800">
-                            {Number(req.quantity).toLocaleString("en-IN")} {req.unit}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-400">Max Budget</span>
-                          <span className="font-semibold text-emerald-700">
-                            ₹{Number(req.max_price).toLocaleString("en-IN")} / {req.unit}
-                          </span>
-                        </div>
-                        {req.quality_grade && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-gray-400">Quality Spec</span>
-                            <span className="font-semibold text-gray-800">{req.quality_grade}</span>
-                          </div>
-                        )}
-                      </div>
+                      <Badge variant={req.status === "open" ? "emerald" : "gray"}>
+                        {req.status.toUpperCase()}
+                      </Badge>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">

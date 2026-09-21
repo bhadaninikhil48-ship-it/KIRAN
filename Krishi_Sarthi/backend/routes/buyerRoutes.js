@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createBuyerRequirement, getMyRequirements, getOpenRequirements } from "../controllers/buyerController.js";
+import { createBuyerRequirement, getMyRequirements, getOpenRequirements, getBuyerProfileById } from "../controllers/buyerController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
@@ -26,6 +26,12 @@ router.get(
     protect,
     allowRoles("farmer"),
     getOpenRequirements
+);
+
+router.get(
+    "/profile/:id",
+    protect,
+    getBuyerProfileById
 );
 
 export default router;

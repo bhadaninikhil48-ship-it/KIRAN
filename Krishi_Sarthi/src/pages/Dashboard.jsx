@@ -29,8 +29,7 @@ import { Card } from "../components/ui/Card";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Avatar } from "../components/ui/Avatar";
-import { EmptyState } from "../components/ui/EmptyState";
-import { StatusBadge } from "../components/ui/StatusBadge";
+import { CropImage } from "../components/ui/CropImage";
 import { AuthContext } from "../context/AuthContext";
 import { api } from "../services/api";
 
@@ -516,31 +515,88 @@ export function Dashboard() {
                     />
                   </div>
 
-                  <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-emerald-700 transition-colors">
-                    {t("dashboard.sellProduce")}
-                  </p>
+            <p className="text-xs text-gray-500 mt-1">
+              {t("dashboard.transactionsDescription")}
+            </p>
+          </Link>
+        </div>
+      </div>
 
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                    {t("dashboard.sellProduceDescription")}
-                  </p>
-                </div>
-              </Link>
+      {/* Produce Statistics Summary Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="p-4 border-gray-200/90 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Total Lots Listed
+            </p>
+            <h3 className="text-2xl font-bold text-gray-900 mt-0.5">
+              {produceStats.total}
+            </h3>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-gray-100 text-gray-700 flex items-center justify-center">
+            <Package size={20} />
+          </div>
+        </Card>
 
-              {/* Action 3: Find Buyers */}
-              <Link
-                to="/buyers"
-                className="bg-white border border-gray-200/90 hover:border-purple-400 hover:shadow-xs hover:-translate-y-0.5 rounded-xl p-4 sm:p-5 transition-all text-left group flex flex-col justify-between"
-              >
+        <Card className="p-4 border-gray-200/90 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Active Available Lots
+            </p>
+            <h3 className="text-2xl font-bold text-emerald-600 mt-0.5">
+              {produceStats.available}
+            </h3>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <ShoppingBasket size={20} />
+          </div>
+        </Card>
+
+        <Card className="p-4 border-gray-200/90 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Completed Deals / Sold
+            </p>
+            <h3 className="text-2xl font-bold text-blue-600 mt-0.5">
+              {produceStats.sold}
+            </h3>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+            <ReceiptText size={20} />
+          </div>
+        </Card>
+      </div>
+
+      {/* Grid container */}
+      <div className="space-y-6">
+        {/* Market Intelligence & Farmer Produce */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          {/* Today's Market Price Card */}
+          <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <CropImage
+                  crop={topMarketPrice?.crop_name || "Tomato"}
+                  size="card"
+                  className="rounded-xl shadow-xs shrink-0 border border-gray-200"
+                />
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <Users size={20} />
-                    </div>
-                    <ArrowUpRight
-                      size={16}
-                      className="text-gray-300 group-hover:text-purple-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-                    />
-                  </div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {t("dashboard.liveMandiBenchmark")}
+                  </p>
+
+                  <h3 className="text-lg font-bold text-gray-900 mt-0.5">
+                    {topMarketPrice
+                      ? `${topMarketPrice.crop_name} (${topMarketPrice.market_name})`
+                      : t("dashboard.todayTomatoPrice")}
+                  </h3>
+                </div>
+              </div>
+
+              <Badge variant="emerald" dot className="shrink-0">
+                {topMarketPrice?.district || "Live Feed"}
+              </Badge>
+            </div>
 
                   <p className="font-semibold text-gray-900 text-sm sm:text-base group-hover:text-purple-700 transition-colors">
                     {t("dashboard.findBuyers")}
@@ -580,31 +636,34 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* 4. Market Intelligence & Farmer Produce Section (2-Column Grid) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
-            {/* Left Card: Market Intelligence */}
-            <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300 transition-all flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                        {t("dashboard.liveMandiBenchmark")}
-                      </p>
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    </div>
+          {/* Your Produce Lot Card */}
+          <Card className="dashboard-card border-gray-200/90 hover:border-emerald-300">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {activeLot?.crop_name && (
+                  <CropImage
+                    crop={activeLot.crop_name}
+                    size="card"
+                    className="rounded-xl shadow-xs shrink-0 border border-gray-200"
+                  />
+                )}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {t("dashboard.activeFarmLot")}
+                  </p>
 
-                    <h3 className="text-lg font-bold text-gray-900 mt-1 truncate">
-                      {topMarketPrice
-                        ? `${topMarketPrice.crop_name} (${topMarketPrice.market_name})`
-                        : t("dashboard.todayTomatoPrice")}
-                    </h3>
-                  </div>
-
-                  <Badge variant="emerald" dot className="shrink-0">
-                    {topMarketPrice?.district || "Live Feed"}
-                  </Badge>
+                  <h3 className="text-lg font-bold text-gray-900 mt-0.5">
+                    {activeLot ? `${activeLot.crop_name} Lot` : "My Farm Produce"}
+                  </h3>
                 </div>
+              </div>
+
+              {activeLot ? (
+                <Badge variant="green" className="shrink-0">{activeLot.status}</Badge>
+              ) : (
+                <Badge variant="gray" className="shrink-0">No Active Lot</Badge>
+              )}
+            </div>
 
                 {/* Main Price Display */}
                 <div className="mt-4 flex items-baseline gap-2">
@@ -618,10 +677,25 @@ export function Dashboard() {
                     / {topMarketPrice?.arrival_unit || "quintal"}
                   </span>
 
-                  <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md ml-1 border border-emerald-200/60">
-                    Modal Rate
-                  </span>
-                </div>
+            <div className="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 font-medium text-gray-700">
+                {activeLot?.crop_name ? (
+                  <>
+                    <CropImage crop={activeLot.crop_name} size="xs" className="rounded shrink-0" />
+                    <span className="font-semibold text-gray-900">{activeLot.crop_name}</span>
+                  </>
+                ) : (
+                  <span>List your harvest</span>
+                )}
+                {activeLot?.quality_grade && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded">
+                      {activeLot.quality_grade}
+                    </span>
+                  </>
+                )}
+              </div>
 
                 {/* Price Spread Range Bar */}
                 {topMarketPrice && topMarketPrice.min_price && topMarketPrice.max_price && (
@@ -634,55 +708,58 @@ export function Dashboard() {
                       <span>Max: ₹{Number(topMarketPrice.max_price).toLocaleString()}</span>
                     </div>
 
-                    <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-amber-400 via-emerald-500 to-emerald-600 rounded-full opacity-80" />
-                      <div
-                        className="absolute top-0 bottom-0 w-2 bg-white rounded-full shadow-md border border-gray-400 -translate-x-1/2"
-                        style={{
-                          left: `${calculatePricePosition(
-                            topMarketPrice.min_price,
-                            topMarketPrice.modal_price,
-                            topMarketPrice.max_price
-                          )}%`,
-                        }}
-                      />
+        {/* Best Selling Opportunity */}
+        {bestOpp && (
+          <div className="dashboard-card">
+            <Link
+              to="/opportunities"
+              className="block group bg-gradient-to-br from-emerald-50/70 via-white to-white border-2 border-emerald-500/70 hover:border-emerald-600 rounded-2xl p-5 sm:p-7 shadow-xs hover:shadow-md transition-all duration-200"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                <div className="flex items-start gap-4">
+                  <CropImage
+                    crop={bestOpp.crop}
+                    size="lot"
+                    className="rounded-2xl shadow-sm shrink-0 border border-emerald-200 hidden sm:block"
+                  />
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                        <Sparkles size={12} className="text-emerald-600" />
+                        {t("dashboard.bestOpportunity")}
+                      </span>
+
+                      <span className="text-xs text-gray-500 hidden sm:inline">
+                        {t("dashboard.maximizedNetRealization")}
+                      </span>
                     </div>
-                  </div>
-                )}
 
-                {/* Detailed Stats Grid */}
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                  <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                    <span className="text-gray-400 block text-[11px]">
-                      {t("dashboard.minPrice")}
-                    </span>
-                    <span className="font-semibold text-gray-800">
-                      {topMarketPrice?.min_price
-                        ? `₹${Number(topMarketPrice.min_price).toLocaleString()}/q`
-                        : "—"}
-                    </span>
-                  </div>
+                    <div className="flex flex-wrap items-baseline gap-3">
+                      <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                        {bestOpp.title}
+                      </h2>
 
-                  <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                    <span className="text-gray-400 block text-[11px]">
-                      {t("dashboard.maxPrice")}
-                    </span>
-                    <span className="font-semibold text-gray-800">
-                      {topMarketPrice?.max_price
-                        ? `₹${Number(topMarketPrice.max_price).toLocaleString()}/q`
-                        : "—"}
-                    </span>
-                  </div>
+                      <span className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                        <MapPin size={14} className="text-gray-400" />
+                        {bestOpp.location}
+                      </span>
+                    </div>
 
-                  <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                    <span className="text-gray-400 block text-[11px]">
-                      Arrival Volume
-                    </span>
-                    <span className="font-semibold text-gray-800 truncate block">
-                      {topMarketPrice?.arrival_quantity
-                        ? `${Number(topMarketPrice.arrival_quantity)} ${topMarketPrice.arrival_unit || "q"}`
-                        : "Active"}
-                    </span>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700">
+                        ₹{bestOpp.price.toLocaleString()}
+                      </span>
+
+                      <span className="text-sm font-medium text-gray-500">
+                        / {bestOpp.unit || "quintal"}
+                      </span>
+
+                      {bestOpp.price && bestOpp.quantity && (
+                        <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded ml-1">
+                          Est. Payout: ₹{(bestOpp.price * (bestOpp.unit === "quintal" ? bestOpp.quantity : bestOpp.quantity / 100)).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -746,12 +823,14 @@ export function Dashboard() {
                   )}
                 </div>
 
-                {activeLot ? (
-                  <div className="mt-4 space-y-4">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700 tracking-tight">
-                        {activeLot.quantity} {activeLot.unit}
-                      </span>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div>
+                      <span className="text-gray-400 block">Crop</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <CropImage crop={bestOpp.crop} size="xs" className="rounded shrink-0" />
+                        <span className="font-bold text-gray-900">{bestOpp.crop}</span>
+                      </div>
+                    </div>
 
                       {activeLot.unit === "kg" && (
                         <span className="text-sm font-medium text-gray-500">

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 import {
   ClipboardList,
   ShieldCheck,
@@ -20,6 +21,7 @@ import {
 import { Modal } from "./ui/Modal";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
+import { CropImage } from "./ui/CropImage";
 
 export const LIFECYCLE_STAGES = [
   { id: 1, key: "order_initiated", label: "Order Initiated", icon: ClipboardList },
@@ -66,8 +68,13 @@ export function ProduceDetailModal({
   onClose,
   item,
   onStageChange,
+  allowSimulation = false,
 }) {
+  const { user } = useContext(AuthContext) || {};
   const [currentStage, setCurrentStage] = useState(1);
+
+  // Role-gated: Strictly hidden for farmer role (must remain read-only view)
+  const canSimulate = Boolean(allowSimulation && user?.role && user.role !== "farmer");
 
   useEffect(() => {
     if (item) {
@@ -116,91 +123,105 @@ export function ProduceDetailModal({
       <div className="space-y-6">
         {/* Top Status & Prototype Stage Controller */}
         <div className="bg-gradient-to-r from-emerald-50 via-white to-blue-50 border border-gray-200/90 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-2xs">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
-              Current Transaction Status
-            </span>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                  isTransactionCompleted
-                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                    : isInDelivery
-                    ? "bg-blue-100 text-blue-800 border border-blue-300"
-                    : currentStage === 1
-                    ? "bg-amber-100 text-amber-800 border border-amber-300"
-                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                }`}
-              >
-                <currentStageObj.icon size={14} />
-                <span>{currentStageObj.label}</span>
+          <div className="flex items-center gap-4">
+            <CropImage
+              crop={item.crop_name}
+              size="lot"
+              className="rounded-2xl shadow-sm shrink-0 border-2 border-emerald-200"
+            />
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                Current Transaction Status • {item.crop_name}
               </span>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                    isTransactionCompleted
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                      : isInDelivery
+                      ? "bg-blue-100 text-blue-800 border border-blue-300"
+                      : currentStage === 1
+                      ? "bg-amber-100 text-amber-800 border border-amber-300"
+                      : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  }`}
+                >
+                  <currentStageObj.icon size={14} />
+                  <span>{currentStageObj.label}</span>
+                </span>
 
-              <span className="text-xs text-gray-600 font-medium">
-                Stage {currentStage} of 7
-              </span>
+                <span className="text-xs text-gray-600 font-medium">
+                  Stage {currentStage} of 7
+                </span>
+              </div>
+
+              <p className="text-xs text-gray-600 mt-1">
+                {currentStage === 1 &&
+                  "Produce lot published on KIRAN exchange. Awaiting institutional buyer match & procurement contract."}
+                {currentStage === 2 &&
+                  "Buyer purchase order accepted. Consignment verification & quality inspection scheduled."}
+                {currentStage === 3 &&
+                  "Harvest collected from farmgate location. Transport dispatch confirmed."}
+                {currentStage === 4 &&
+                  "Produce consignment is currently in transit to regional distribution hub."}
+                {currentStage === 5 &&
+                  "Consignment safely delivered to buyer aggregation center. Awaiting settlement release."}
+                {currentStage === 6 &&
+                  "Escrow payment clearance initiated to farmer's linked bank account."}
+                {currentStage === 7 &&
+                  "Transaction fully settled! Payment credited to farmer's linked SBI account."}
+              </p>
             </div>
-
-            <p className="text-xs text-gray-600 mt-1">
-              {currentStage === 1 &&
-                "Produce lot published on KIRAN exchange. Awaiting institutional buyer match & procurement contract."}
-              {currentStage === 2 &&
-                "Buyer purchase order accepted. Consignment verification & quality inspection scheduled."}
-              {currentStage === 3 &&
-                "Harvest collected from farmgate location. Transport dispatch confirmed."}
-              {currentStage === 4 &&
-                "Produce consignment is currently in transit to regional distribution hub."}
-              {currentStage === 5 &&
-                "Consignment safely delivered to buyer aggregation center. Awaiting settlement release."}
-              {currentStage === 6 &&
-                "Escrow payment clearance initiated to farmer's linked bank account."}
-              {currentStage === 7 &&
-                "Transaction fully settled! Payment credited to farmer's linked SBI account."}
-            </p>
           </div>
 
-          {/* Demo stage controller for SIH presentation */}
-          <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-gray-200 shrink-0">
-            <span className="text-[11px] font-semibold text-gray-500 hidden sm:inline">
-              Simulate:
-            </span>
-            <select
-              value={currentStage}
-              onChange={(e) => handleUpdateStage(parseInt(e.target.value, 10))}
-              aria-label="Simulate Lifecycle Stage"
-              className="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
-            >
-              {LIFECYCLE_STAGES.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.id}. {s.label}
-                </option>
-              ))}
-            </select>
-
-            {currentStage < 7 && (
-              <button
-                type="button"
-                onClick={() => handleUpdateStage(currentStage + 1)}
-                title="Advance to next lifecycle stage"
-                className="text-xs font-semibold px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+          {/* Demo stage controller (role-gated: strictly hidden for Farmer role) */}
+          {canSimulate && (
+            <div className="flex items-center gap-2 bg-white/80 p-2 rounded-xl border border-gray-200 shrink-0">
+              <span className="text-[11px] font-semibold text-gray-500 hidden sm:inline">
+                Simulate:
+              </span>
+              <select
+                value={currentStage}
+                onChange={(e) => handleUpdateStage(parseInt(e.target.value, 10))}
+                aria-label="Simulate Lifecycle Stage"
+                className="text-xs font-semibold bg-gray-50 border border-gray-300 rounded-lg px-2.5 py-1.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               >
-                <span>Advance</span>
-                <ChevronRight size={13} />
-              </button>
-            )}
-          </div>
+                {LIFECYCLE_STAGES.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.id}. {s.label}
+                  </option>
+                ))}
+              </select>
+
+              {currentStage < 7 && (
+                <button
+                  type="button"
+                  onClick={() => handleUpdateStage(currentStage + 1)}
+                  title="Advance to next lifecycle stage"
+                  className="text-xs font-semibold px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
+                >
+                  <span>Advance</span>
+                  <ChevronRight size={13} />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* PRODUCE LOT SPECIFICATIONS GRID */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50/80 p-4 rounded-xl border border-gray-200/80 text-xs">
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             <span className="text-gray-400 uppercase tracking-wider text-[10px] font-semibold">
               Produce & Quality
             </span>
-            <p className="font-bold text-gray-900 text-sm">{item.crop_name}</p>
-            <span className="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
-              {item.quality_grade || "Grade A"}
-            </span>
+            <div className="flex items-center gap-2.5 pt-0.5">
+              <CropImage crop={item.crop_name} size="card" className="rounded-xl shadow-2xs shrink-0 border border-gray-200" />
+              <div className="min-w-0">
+                <p className="font-bold text-gray-900 text-sm truncate">{item.crop_name}</p>
+                <span className="inline-block text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">
+                  {item.quality_grade || "Grade A"}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-0.5">
