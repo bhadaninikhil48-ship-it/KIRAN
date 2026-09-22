@@ -1,12 +1,14 @@
 import { useState, useContext } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { AddressProvider } from "./context/AddressContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Shell Components
 import Sidebar from "./components/Sidebar";
 import Navbar from "./components/Navbar";
 import FloatingVoiceAssistant from "./components/FloatingVoiceAssistant";
+import AddressModalsHost from "./components/location/AddressModalsHost";
 import { LoadingState } from "./components/ui/LoadingState";
 
 // Auth Pages
@@ -73,6 +75,9 @@ function AppLayout() {
 
         {/* Global Floating Voice Assistant for all authenticated roles */}
         <FloatingVoiceAssistant />
+
+        {/* Global Address Management & Map Modals */}
+        <AddressModalsHost />
       </div>
     </div>
   );
@@ -108,7 +113,8 @@ function HomeRoute() {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <AddressProvider>
+        <BrowserRouter>
         <Routes>
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
@@ -248,6 +254,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      </AddressProvider>
     </AuthProvider>
   );
 }

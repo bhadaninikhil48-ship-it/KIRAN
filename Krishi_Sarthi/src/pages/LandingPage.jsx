@@ -204,15 +204,14 @@ export function LandingPage() {
 
   // Representative agricultural produce showcase
   const sampleCrops = [
-    { name: "Tomato", label: "Tomato (Tamatar)" },
-    { name: "Potato", label: "Potato (Aloo)" },
-    { name: "Banana", label: "Banana (Kela)" },
-    { name: "Garlic", label: "Garlic (Lasun)" },
-    { name: "Carrot", label: "Carrot (Gajar)" },
-    { name: "Onion", label: "Onion (Pyaz)" },
-    { name: "Wheat", label: "Wheat (Gehun)" },
-    { name: "Soybean", label: "Soybean (Soya)" },
-    { name: "Litchi", label: "Litchi (Lychee)" },
+    { name: "Wheat", category: "Cereals" },
+    { name: "Potato", category: "Vegetables" },
+    { name: "Onion", category: "Vegetables" },
+    { name: "Tomato", category: "Vegetables" },
+    { name: "Soybean", category: "Oilseeds" },
+    { name: "Garlic", category: "Spices" },
+    { name: "Carrot", category: "Vegetables" },
+    { name: "Banana", category: "Fruits" },
   ];
 
   return (
@@ -875,19 +874,25 @@ export function LandingPage() {
             </p>
           </div>
 
-          {/* Produce Grid using CropImage Component */}
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3 sm:gap-4">
+          {/* Produce Grid matching Reference Image 2 */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4">
             {sampleCrops.map((crop, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-2xl border border-gray-200/90 p-3 flex flex-col items-center text-center shadow-2xs hover:shadow-xs hover:border-emerald-300 transition-all duration-200 group"
+                className="bg-white rounded-2xl border border-gray-200/90 p-2 sm:p-2.5 pb-3 flex flex-col items-center text-center shadow-2xs hover:shadow-md hover:-translate-y-1 hover:border-emerald-300 transition-all duration-200 group cursor-pointer"
               >
-                <CropImage cropName={crop.name} size="sm" />
-                <span className="text-xs font-bold text-gray-800 mt-2 truncate w-full">
+                <div className="w-full aspect-square rounded-xl overflow-hidden bg-gray-50 mb-2 sm:mb-2.5">
+                  <CropImage
+                    cropName={crop.name}
+                    size="full"
+                    className="w-full h-full rounded-xl border-0 shadow-none"
+                  />
+                </div>
+                <span className="text-xs sm:text-sm font-bold text-gray-900 truncate w-full">
                   {crop.name}
                 </span>
-                <span className="text-[10px] text-gray-400 block truncate w-full">
-                  Grade A / Lots
+                <span className="text-[10px] sm:text-xs text-gray-500 font-medium truncate w-full mt-0.5">
+                  {crop.category}
                 </span>
               </div>
             ))}

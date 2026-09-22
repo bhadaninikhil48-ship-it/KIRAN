@@ -24,6 +24,7 @@ import { Button } from "../components/ui/Button";
 import { Avatar } from "../components/ui/Avatar";
 import { CropImage } from "../components/ui/CropImage";
 import { AuthContext } from "../context/AuthContext";
+import { DashboardLocationCard } from "../components/location/DashboardLocationCard";
 import { api } from "../services/api";
 
 export function Dashboard() {
@@ -220,68 +221,76 @@ export function Dashboard() {
 
   return (
     <div ref={cardsContainerRef} className="space-y-6 sm:space-y-8">
-      {/* 1. Good Morning / Welcome Banner (with User Profile Avatar) */}
-      <div className="dashboard-card flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-emerald-900 to-emerald-800 text-white p-5 sm:p-7 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-4 sm:gap-5">
-          <Link
-            to="/profile"
-            title="View & Edit Profile Photo"
-            className="shrink-0 transition-transform hover:scale-105"
-          >
-            <Avatar
-              src={user?.avatar}
-              name={user?.name || "Farmer"}
-              role={user?.role || "farmer"}
-              size="xl"
-              ring
-              className="border-2 border-emerald-400/30 shadow-md"
-            />
-          </Link>
+      {/* 1. Dashboard Header Section with Beside Location Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        {/* Welcome Greeting Banner */}
+        <div className="lg:col-span-8 dashboard-card flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-emerald-900 to-emerald-800 text-white p-5 sm:p-7 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+            <Link
+              to="/profile"
+              title="View & Edit Profile Photo"
+              className="shrink-0 transition-transform hover:scale-105"
+            >
+              <Avatar
+                src={user?.avatar}
+                name={user?.name || "Farmer"}
+                role={user?.role || "farmer"}
+                size="xl"
+                ring
+                className="border-2 border-emerald-400/30 shadow-md"
+              />
+            </Link>
 
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
-                KIRAN Live Exchange
-              </span>
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
+                  KIRAN Live Exchange
+                </span>
 
-              <span className="text-xs text-emerald-200">
-                {t("dashboard.mandiSession")}
-              </span>
+                <span className="text-xs text-emerald-200">
+                  {t("dashboard.mandiSession")}
+                </span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white truncate">
+                {t("dashboard.greeting")}, {user?.name || "Farmer"}
+              </h1>
+
+              <p className="text-emerald-100/90 text-sm max-w-xl truncate">
+                {t("dashboard.subtitle")}
+              </p>
             </div>
+          </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white truncate">
-              {t("dashboard.greeting")}, {user?.name || "Farmer"}
-            </h1>
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap shrink-0">
+            <Link to="/sell?action=new" state={{ newCrop: true }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="bg-white text-emerald-950 hover:bg-emerald-50 font-bold border border-white shadow-sm"
+                icon={ShoppingBasket}
+              >
+                {t("dashboard.listProduce")}
+              </Button>
+            </Link>
 
-            <p className="text-emerald-100/90 text-sm max-w-xl">
-              {t("dashboard.subtitle")}
-            </p>
+            {/* View Best Match Button */}
+            <Link to="/opportunities">
+              <Button
+                variant="primary"
+                size="sm"
+                className="bg-emerald-800 text-white border-2 border-emerald-300/80 hover:bg-emerald-700 hover:border-emerald-200 font-bold shadow-sm"
+                icon={TrendingUp}
+              >
+                {t("dashboard.viewBestMatch")}
+              </Button>
+            </Link>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-          <Link to="/sell?action=new" state={{ newCrop: true }}>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="bg-white text-emerald-950 hover:bg-emerald-50 font-bold border border-white shadow-sm"
-              icon={ShoppingBasket}
-            >
-              {t("dashboard.listProduce")}
-            </Button>
-          </Link>
-
-          {/* View Best Match Button - ALWAYS visible, distinct border and high contrast */}
-          <Link to="/opportunities">
-            <Button
-              variant="primary"
-              size="sm"
-              className="bg-emerald-800 text-white border-2 border-emerald-300/80 hover:bg-emerald-700 hover:border-emerald-200 font-bold shadow-sm"
-              icon={TrendingUp}
-            >
-              {t("dashboard.viewBestMatch")}
-            </Button>
-          </Link>
+        {/* Beside Section: Add Location / Saved Location Card */}
+        <div className="lg:col-span-4 flex flex-col justify-center">
+          <DashboardLocationCard className="h-full flex flex-col justify-center" />
         </div>
       </div>
 

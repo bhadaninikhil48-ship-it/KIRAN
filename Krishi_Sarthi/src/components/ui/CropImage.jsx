@@ -45,6 +45,7 @@ export function CropImage({
     lot: "w-20 h-20 sm:w-24 sm:h-24 text-3xl",
     preview: "w-24 h-24 sm:w-28 sm:h-28 text-4xl",
     xl: "w-28 h-28 sm:w-32 sm:h-32 text-4xl",
+    full: "w-full h-full text-3xl",
   }[size] || "w-12 h-12 text-base";
 
   // Shape definitions
@@ -82,7 +83,7 @@ export function CropImage({
           alt={displayAlt}
           loading="lazy"
           onError={() => setHasError(true)}
-          className="w-full h-full object-cover transition-transform duration-200 hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 hover:scale-105"
         />
       ) : (
         /* Emergency Fallback (offline or failed network request) */

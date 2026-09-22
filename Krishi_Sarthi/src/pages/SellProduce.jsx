@@ -15,6 +15,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Star,
+  ChevronDown,
+  Check,
 } from "lucide-react";
 import { Card, CardHeader } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -39,19 +41,87 @@ import {
 import { BuyerOfferDetailsModal } from "../components/BuyerOfferDetailsModal";
 import { calculateTransitDistance } from "../utils/distanceCalculator";
 import { AuthContext } from "../context/AuthContext";
+import { useAddresses } from "../context/AddressContext";
 import { animateStagger } from "../utils/animations";
 import { api } from "../services/api";
 
 export function SellProduce() {
   const { user } = useContext(AuthContext) || {};
+  const {
+    addresses,
+    defaultAddress,
+    openAddAddress,
+    openAddressManager,
+    selectAddress,
+    preservedSellForm,
+    preserveSellFormData,
+  } = useAddresses();
 
-  const [crop, setCrop] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("kg");
-  const [grade, setGrade] = useState("Grade A");
-  const [expectedPrice, setExpectedPrice] = useState("");
-  const [location, setLocation] = useState("");
-  const [deliveryDate, setDeliveryDate] = useState("");
+  const [crop, setCrop] = useState(() => preservedSellForm?.crop || "");
+  const [quantity, setQuantity] = useState(() => preservedSellForm?.quantity || "");
+  const [unit, setUnit] = useState(() => preservedSellForm?.unit || "kg");
+  const [grade, setGrade] = useState(() => preservedSellForm?.grade || "Grade A");
+  const [expectedPrice, setExpectedPrice] = useState(() => preservedSellForm?.expectedPrice || "");
+  const [deliveryDate, setDeliveryDate] = useState(() => preservedSellForm?.deliveryDate || "");
+  const [selectedLocationId, setSelectedLocationId] = useState(() => preservedSellForm?.selectedLocationId || defaultAddress?.id || null);
+  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false);
+  const addressDropdownRef = useRef(null);
+
+  const [location, setLocation] = useState(() => {
+    if (preservedSellForm?.location) return preservedSellForm.location;
+    if (defaultAddress) {
+      return [defaultAddress.village_locality, defaultAddress.district, defaultAddress.state].filter(Boolean).join(", ");
+    }
+    return "";
+  });
+
+  // Sync location with defaultAddress if empty
+  useEffect(() => {
+    if (!location && defaultAddress) {
+      const formatted = [defaultAddress.village_locality, defaultAddress.district, defaultAddress.state].filter(Boolean).join(", ");
+      setLocation(formatted);
+      setSelectedLocationId((prev) => prev || defaultAddress.id);
+    }
+  }, [defaultAddress, location]);
+
+  // Click outside listener for dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (addressDropdownRef.current && !addressDropdownRef.current.contains(e.target)) {
+        setIsAddressDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handler to initiate Add Address from Sell New Crop
+  const handleAddNewAddressFromSellForm = () => {
+    setIsAddressDropdownOpen(false);
+    // 1. Preserve current form data
+    preserveSellFormData({
+      crop,
+      quantity,
+      unit,
+      grade,
+      expectedPrice,
+      deliveryDate,
+      location,
+      selectedLocationId,
+    });
+
+    // 2. Open Add Address modal with Sell New Crop return context
+    openAddAddress({
+      flowContext: "sell-new-crop",
+      onSuccess: (newAddr) => {
+        const formatted = [newAddr.village_locality, newAddr.district, newAddr.state].filter(Boolean).join(", ");
+        setLocation(formatted);
+        setSelectedLocationId(newAddr.id);
+        selectAddress(newAddr.id);
+        setShowSellForm(true);
+      },
+    });
+  };
   // Data states
   const [myProduce, setMyProduce] = useState([]);
   const [loadingProduce, setLoadingProduce] = useState(true);
@@ -506,6 +576,7 @@ export function SellProduce() {
       setListingSuccess(res.message || "Produce successfully listed on KIRAN marketplace!");
       await fetchMyProduce();
       setShowSellForm(false);
+      preserveSellFormData(null);
 
       // Reset the form for the next listing.
       setCrop("");
@@ -942,14 +1013,125 @@ export function SellProduce() {
 
                 {/* 3. Farm Location & Harvest Date */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="Farmgate Location / Cluster"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder={`e.g. Makhmalabad Village or ${farmerProfileLocation}`}
-                    icon={MapPin}
-                    required
-                  />
+                  {/* Farmgate Location Dropdown with Add Address Option */}
+                  <div className="relative" ref={addressDropdownRef}>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Farmgate Location / Cluster <span className="text-red-500">*</span>
+                      </label>
+                      {addresses.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => openAddressManager({ flowContext: "sell-new-crop" })}
+                          className="text-xs text-emerald-700 hover:text-emerald-800 font-semibold cursor-pointer"
+                        >
+                          Manage
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Dropdown trigger button */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAddressDropdownOpen((prev) => !prev)}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 text-left rounded-xl border transition-all cursor-pointer bg-white ${
+                        isAddressDropdownOpen
+                          ? "border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs"
+                          : "border-gray-300 hover:border-gray-400"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <MapPin size={18} className="text-emerald-600 shrink-0" />
+                        <div className="min-w-0">
+                          {location ? (
+                            <span className="text-sm font-semibold text-gray-900 block truncate">
+                              {location}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400 block truncate">
+                              Select Farmgate Address
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronDown
+                        size={17}
+                        className={`text-gray-400 transition-transform shrink-0 ${
+                          isAddressDropdownOpen ? "rotate-180 text-emerald-600" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isAddressDropdownOpen && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 z-30 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden divide-y divide-gray-100 animate-in fade-in-50 zoom-in-95 duration-150">
+                        <div className="p-2 max-h-60 overflow-y-auto space-y-1">
+                          {addresses.length === 0 ? (
+                            <div className="p-3 text-center text-xs text-gray-500">
+                              No saved farmgate addresses
+                            </div>
+                          ) : (
+                            addresses.map((addr) => {
+                              const formatted = [addr.village_locality, addr.district, addr.state]
+                                .filter(Boolean)
+                                .join(", ");
+                              const isSelected =
+                                location === formatted ||
+                                (selectedLocationId && String(selectedLocationId) === String(addr.id));
+
+                              return (
+                                <button
+                                  key={addr.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setLocation(formatted);
+                                    setSelectedLocationId(addr.id);
+                                    selectAddress(addr.id);
+                                    setIsAddressDropdownOpen(false);
+                                  }}
+                                  className={`w-full text-left p-2.5 rounded-xl text-xs flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                                    isSelected
+                                      ? "bg-emerald-50 text-emerald-900 font-semibold"
+                                      : "hover:bg-gray-50 text-gray-700"
+                                  }`}
+                                >
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-bold text-gray-900">
+                                        {addr.tag || "Farm"}
+                                      </span>
+                                      {Boolean(addr.is_default) && (
+                                        <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded font-bold">
+                                          Default
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-gray-500 truncate mt-0.5">{formatted}</p>
+                                  </div>
+
+                                  {isSelected && (
+                                    <Check size={16} className="text-emerald-600 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+
+                        {/* Action: + Add New Address */}
+                        <div className="p-2 bg-gray-50/80">
+                          <button
+                            type="button"
+                            onClick={handleAddNewAddressFromSellForm}
+                            className="w-full py-2 px-3 rounded-xl bg-white hover:bg-emerald-50 border border-dashed border-emerald-300 text-xs font-bold text-emerald-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                          >
+                            <Plus size={15} />
+                            <span>+ Add New Address</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <Input
                     label="Available / Ready Harvest Date"

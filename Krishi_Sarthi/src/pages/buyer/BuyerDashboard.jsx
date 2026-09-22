@@ -9,10 +9,8 @@ import {
   Clock,
   ArrowRight,
   ShieldCheck,
-  CheckCircle2,
-  Package,
-  MapPin,
   RefreshCw,
+  MapPin,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -21,9 +19,10 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { CropImage } from "../../components/ui/CropImage";
+import { DashboardLocationCard } from "../../components/location/DashboardLocationCard";
 
 export function BuyerDashboard() {
-  const { user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext) || {};
   const [requirements, setRequirements] = useState([]);
   const [offers, setOffers] = useState([]);
   const [contracts, setContracts] = useState([]);
@@ -34,15 +33,19 @@ export function BuyerDashboard() {
     try {
       setLoading(true);
       setError(null);
-      const [reqRes, offRes, conRes] = await Promise.all([
+      const [reqRes, offRes, conRes] = await Promise.allSettled([
         api.get("/api/buyer/requirements/my"),
         api.get("/api/offers/buyer"),
         api.get("/api/contracts/buyer"),
       ]);
 
-      setRequirements(reqRes.requirements || []);
-      setOffers(offRes.offers || []);
-      setContracts(conRes.contracts || []);
+      const reqData = reqRes.status === "fulfilled" ? reqRes.value : null;
+      const offData = offRes.status === "fulfilled" ? offRes.value : null;
+      const conData = conRes.status === "fulfilled" ? conRes.value : null;
+
+      setRequirements(reqData?.requirements || (Array.isArray(reqData) ? reqData : []));
+      setOffers(offData?.offers || (Array.isArray(offData) ? offData : []));
+      setContracts(conData?.contracts || (Array.isArray(conData) ? conData : []));
     } catch (err) {
       console.error("Error loading buyer dashboard data:", err);
       setError("Failed to load dashboard data. Please try again.");
@@ -52,46 +55,80 @@ export function BuyerDashboard() {
   };
 
   useEffect(() => {
-    loadData();
+    let active = true;
+    (async () => {
+      try {
+        const [reqRes, offRes, conRes] = await Promise.allSettled([
+          api.get("/api/buyer/requirements/my"),
+          api.get("/api/offers/buyer"),
+          api.get("/api/contracts/buyer"),
+        ]);
+        if (!active) return;
+        const reqData = reqRes.status === "fulfilled" ? reqRes.value : null;
+        const offData = offRes.status === "fulfilled" ? offRes.value : null;
+        const conData = conRes.status === "fulfilled" ? conRes.value : null;
+
+        setRequirements(reqData?.requirements || (Array.isArray(reqData) ? reqData : []));
+        setOffers(offData?.offers || (Array.isArray(offData) ? offData : []));
+        setContracts(conData?.contracts || (Array.isArray(conData) ? conData : []));
+      } catch (err) {
+        if (!active) return;
+        console.error("Error loading buyer dashboard data:", err);
+        setError("Failed to load dashboard data. Please try again.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const openReqs = requirements.filter((r) => r.status === "open");
-  const pendingOffers = offers.filter((o) => o.status === "pending");
-  const activeContracts = contracts.filter((c) => c.status === "active");
-  const totalSourcedValue = contracts.reduce((acc, c) => acc + (Number(c.total_amount) || 0), 0);
+  const openReqs = Array.isArray(requirements) ? requirements.filter((r) => r?.status === "open") : [];
+  const pendingOffers = Array.isArray(offers) ? offers.filter((o) => o?.status === "pending") : [];
+  const activeContracts = Array.isArray(contracts) ? contracts.filter((c) => c?.status === "active") : [];
+  const totalSourcedValue = Array.isArray(contracts)
+    ? contracts.reduce((acc, c) => acc + (Number(c?.total_amount) || 0), 0)
+    : 0;
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              Buyer Command Center
-            </h1>
-            <Badge variant="blue" dot>
-              Procurement Hub
-            </Badge>
+      {/* Header & Location Setup */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        <div className="lg:col-span-8 bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                Buyer Command Center
+              </h1>
+              <Badge variant="blue" dot>
+                Procurement Hub
+              </Badge>
+            </div>
+            <p className="mt-1 text-xs sm:text-sm text-gray-500 max-w-xl">
+              Welcome back, <strong className="text-gray-800">{user?.name || "Buyer"}</strong>. Manage your procurement pipeline, incoming farmer offers, and legal fulfillment contracts.
+            </p>
           </div>
-          <p className="mt-1 text-xs sm:text-sm text-gray-500">
-            Welcome back, <strong className="text-gray-800">{user?.name || "Buyer"}</strong>. Manage your procurement pipeline, incoming farmer offers, and legal fulfillment contracts.
-          </p>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              icon={RefreshCw}
+              onClick={loadData}
+            >
+              Refresh
+            </Button>
+            <Link to="/buyer/requirements">
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" icon={PlusCircle}>
+                Post Requirement
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Button
-            size="sm"
-            variant="outline"
-            icon={RefreshCw}
-            onClick={loadData}
-          >
-            Refresh
-          </Button>
-          <Link to="/buyer/requirements">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" icon={PlusCircle}>
-              Post Requirement
-            </Button>
-          </Link>
+        <div className="lg:col-span-4 flex flex-col justify-center">
+          <DashboardLocationCard className="h-full flex flex-col justify-center" />
         </div>
       </div>
 
@@ -276,14 +313,14 @@ export function BuyerDashboard() {
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-bold text-gray-900 text-base">
-                              {offer.crop_name}
+                              {offer.crop_name || "Produce"}
                             </h3>
                             <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
                               {offer.quality_grade || "Grade A"}
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            Farmer: <strong>{offer.farmer_name}</strong> • Requirement #{offer.requirement_id}
+                            Farmer: <strong>{offer.farmer_name || "Farmer"}</strong> • Requirement #{offer.requirement_id || "-"}
                           </p>
                         </div>
                       </div>
@@ -294,13 +331,13 @@ export function BuyerDashboard() {
                       <div>
                         <span className="text-gray-400 block">Offered Rate</span>
                         <span className="font-bold text-gray-900 text-sm">
-                          ₹{Number(offer.offer_price).toLocaleString()} / {offer.unit}
+                          ₹{(Number(offer.offer_price) || 0).toLocaleString()} / {offer.unit || "kg"}
                         </span>
                       </div>
                       <div>
                         <span className="text-gray-400 block">Volume</span>
                         <span className="font-bold text-gray-900 text-sm">
-                          {Number(offer.quantity).toLocaleString()} {offer.unit}
+                          {(Number(offer.quantity) || 0).toLocaleString()} {offer.unit || "kg"}
                         </span>
                       </div>
                       <Link to="/buyer/offers">
@@ -352,15 +389,15 @@ export function BuyerDashboard() {
                           size="sm"
                           className="rounded-lg shadow-2xs shrink-0 border border-gray-200"
                         />
-                        <h3 className="font-bold text-gray-900">{req.crop_name}</h3>
+                        <h3 className="font-bold text-gray-900">{req.crop_name || "Produce"}</h3>
                       </div>
                       <Badge variant={req.status === "open" ? "emerald" : "gray"}>
-                        {req.status.toUpperCase()}
+                        {(req.status || "open").toUpperCase()}
                       </Badge>
                     </div>
                     <div className="text-xs space-y-1 text-gray-600">
-                      <div>Quantity: <strong>{Number(req.quantity).toLocaleString()} {req.unit}</strong></div>
-                      <div>Max Budget: <strong>₹{Number(req.max_price).toLocaleString()} / {req.unit}</strong></div>
+                      <div>Quantity: <strong>{(Number(req.quantity) || 0).toLocaleString()} {req.unit || "kg"}</strong></div>
+                      <div>Max Budget: <strong>₹{(Number(req.max_price) || 0).toLocaleString()} / {req.unit || "kg"}</strong></div>
                       <div className="flex items-center gap-1 text-gray-400">
                         <MapPin size={12} /> {req.location || "Direct Delivery"}
                       </div>

@@ -1,14 +1,10 @@
 import { useState, useEffect, useContext } from "react";
 import { Link } from "react-router-dom";
 import {
-  Users,
   TrendingUp,
   Store,
   ShoppingBasket,
   ShieldCheck,
-  Package,
-  Layers,
-  Info,
   RefreshCw,
   ArrowRight,
   Sparkles,
@@ -20,6 +16,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { CropImage } from "../../components/ui/CropImage";
+import { DashboardLocationCard } from "../../components/location/DashboardLocationCard";
 
 export function FPODashboard() {
   const { user } = useContext(AuthContext);
@@ -52,41 +49,71 @@ export function FPODashboard() {
   };
 
   useEffect(() => {
-    loadData();
+    let active = true;
+    (async () => {
+      try {
+        const [reqRes, priceRes] = await Promise.allSettled([
+          api.get("/api/buyer/requirements/open"),
+          api.get("/api/market/prices"),
+        ]);
+        if (!active) return;
+        if (reqRes.status === "fulfilled") {
+          setOpenRequirements(reqRes.value?.requirements || []);
+        }
+        if (priceRes.status === "fulfilled") {
+          setMarketPrices(priceRes.value?.prices || priceRes.value?.records || []);
+        }
+      } catch (err) {
+        if (!active) return;
+        console.error("Error loading FPO dashboard data:", err);
+        setError("Failed to load FPO data.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              FPO Collective Command
-            </h1>
-            <Badge variant="emerald" dot>
-              Cluster Aggregator
-            </Badge>
+      {/* Header & Location Setup */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        <div className="lg:col-span-8 bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+                FPO Collective Command
+              </h1>
+              <Badge variant="emerald" dot>
+                Cluster Aggregator
+              </Badge>
+            </div>
+            <p className="mt-1 text-xs sm:text-sm text-gray-500 max-w-xl">
+              Welcome, <strong className="text-gray-800">{user?.name || "FPO Leader"}</strong>. Aggregate smallholder harvest volumes, track bulk buyer demand, and optimize mandi logistics.
+            </p>
           </div>
-          <p className="mt-1 text-xs sm:text-sm text-gray-500">
-            Welcome, <strong className="text-gray-800">{user?.name || "FPO Leader"}</strong>. Aggregate smallholder harvest volumes, track bulk buyer demand, and optimize mandi logistics.
-          </p>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              icon={RefreshCw}
+              onClick={loadData}
+            >
+              Refresh
+            </Button>
+            <Link to="/markets">
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" icon={Store}>
+                Mandi Prices
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Button
-            size="sm"
-            variant="outline"
-            icon={RefreshCw}
-            onClick={loadData}
-          >
-            Refresh
-          </Button>
-          <Link to="/markets">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" icon={Store}>
-              Mandi Prices
-            </Button>
-          </Link>
+        <div className="lg:col-span-4 flex flex-col justify-center">
+          <DashboardLocationCard className="h-full flex flex-col justify-center" />
         </div>
       </div>
 
