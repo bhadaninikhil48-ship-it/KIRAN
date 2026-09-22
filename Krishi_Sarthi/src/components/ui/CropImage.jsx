@@ -21,7 +21,8 @@ import { getCropImage } from "../../utils/cropImageMap";
  * - 'xl': 112-128px (large detail views)
  */
 export function CropImage({
-  crop = "Wheat",
+  crop,
+  cropName,
   size = "md",
   shape = "rounded",
   className = "",
@@ -30,7 +31,8 @@ export function CropImage({
 }) {
   const [hasError, setHasError] = useState(false);
 
-  const cropData = getCropImage(crop);
+  const effectiveCrop = cropName || crop || "Wheat";
+  const cropData = getCropImage(effectiveCrop);
 
   // Sizing definitions mapped to Tailwind classes
   const sizeClasses = {

@@ -44,12 +44,14 @@ export function BuyerOfferDetailsModal({
     ? requirement.required_by.split("T")[0]
     : "Prompt Dispatch";
 
-  const totalContractValue = requirement.max_price
-    ? Math.round(
-        (Number(requiredQty) / (unit === "quintal" ? 1 : 100)) *
-          Number(requirement.max_price)
-      )
-    : null;
+  const totalContractValue =
+    requirement.estimatedLotValue ||
+    (requirement.max_price
+      ? Math.round(
+          (Number(requiredQty) / (unit === "quintal" ? 1 : 100)) *
+            Number(requirement.max_price)
+        )
+      : null);
 
   return (
     <Modal
@@ -122,14 +124,24 @@ export function BuyerOfferDetailsModal({
             )}
           </div>
 
-          <div className="mt-3 pt-3 border-t border-emerald-100/80 flex items-center justify-between text-xs text-emerald-800 flex-wrap gap-2">
-            <span className="flex items-center gap-1 font-medium">
-              <TrendingUp size={13} className="text-emerald-600" />
-              Benchmark: Competitive APMC ceiling rate
-            </span>
-            <span className="font-bold bg-white/80 px-2 py-0.5 rounded border border-emerald-200 text-[11px]">
-              Prompt Escrow Settlement
-            </span>
+          <div className="mt-3 pt-3 border-t border-emerald-100/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-emerald-900">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <TrendingUp size={13} className="text-emerald-600 shrink-0" />
+              <span>
+                <strong>APMC Min Price:</strong>{" "}
+                {requirement.apmcMinPrice
+                  ? `₹${Number(requirement.apmcMinPrice).toLocaleString()} / quintal`
+                  : "Mandi Floor Benchmark"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between sm:justify-end gap-2 text-[11px] flex-wrap">
+              <span className="text-gray-500 font-medium">
+                MSP: <span className="font-semibold text-gray-700">MSP Unavailable</span>
+              </span>
+              <span className="font-bold bg-white/80 px-2 py-0.5 rounded border border-emerald-200 text-emerald-800 shrink-0">
+                Prompt Escrow Settlement
+              </span>
+            </div>
           </div>
         </div>
 
