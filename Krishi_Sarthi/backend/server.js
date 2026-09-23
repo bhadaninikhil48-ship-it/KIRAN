@@ -9,6 +9,7 @@ import offerRoutes from "./routes/offerRoutes.js";
 import contractRoutes from "./routes/contractRoutes.js";
 import negotiationRoutes from "./routes/negotiationRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
+import fpoRoutes from "./routes/fpoRoutes.js";
 
 import priceRoutes from "./routes/priceRoutes.js";
 import "./jobs/priceJob.js";
@@ -31,6 +32,7 @@ app.use("/api/offers", offerRoutes);
 app.use("/api/contracts", contractRoutes);
 app.use("/api/negotiations", negotiationRoutes);
 app.use("/api/addresses", addressRoutes);
+app.use("/api/fpo", fpoRoutes);
 
 app.use("/price", priceRoutes);
 

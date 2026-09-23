@@ -35,6 +35,12 @@ import BuyerContracts from "./pages/buyer/BuyerContracts";
 
 // FPO Pages
 import FPODashboard from "./pages/fpo/FPODashboard";
+import FPOMembers from "./pages/fpo/FPOMembers";
+import FPOLots from "./pages/fpo/FPOLots";
+import FPOMarketplace from "./pages/fpo/FPOMarketplace";
+import FPOOffers from "./pages/fpo/FPOOffers";
+import FPOContracts from "./pages/fpo/FPOContracts";
+import FPOProfile from "./pages/fpo/FPOProfile";
 import LandingPage from "./pages/LandingPage";
 
 import PriceTrend from "./components/PriceTrend";
@@ -110,6 +116,14 @@ function HomeRoute() {
   return <Dashboard />;
 }
 
+function UnifiedProfile() {
+  const { user } = useContext(AuthContext);
+  if (user?.role === "fpo") {
+    return <FPOProfile />;
+  }
+  return <Profile />;
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -126,6 +140,8 @@ function App() {
           <Route element={<AppLayout />}>
             {/* Smart Home Route */}
             <Route path="/" element={<HomeRoute />} />
+            <Route path="/farmer/dashboard" element={<Navigate to="/" replace />} />
+            <Route path="/best-opportunities" element={<Navigate to="/opportunities" replace />} />
 
             {/* Farmer Protected Routes */}
             <Route
@@ -173,7 +189,7 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute allowedRoles={["farmer", "buyer", "fpo"]}>
-                  <Profile />
+                  <UnifiedProfile />
                 </ProtectedRoute>
               }
             />
@@ -226,6 +242,54 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["fpo"]}>
                   <FPODashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fpo/members"
+              element={
+                <ProtectedRoute allowedRoles={["fpo"]}>
+                  <FPOMembers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fpo/lots"
+              element={
+                <ProtectedRoute allowedRoles={["fpo"]}>
+                  <FPOLots />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fpo/marketplace"
+              element={
+                <ProtectedRoute allowedRoles={["fpo"]}>
+                  <FPOMarketplace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fpo/offers"
+              element={
+                <ProtectedRoute allowedRoles={["fpo"]}>
+                  <FPOOffers />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fpo/contracts"
+              element={
+                <ProtectedRoute allowedRoles={["fpo"]}>
+                  <FPOContracts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/fpo/profile"
+              element={
+                <ProtectedRoute allowedRoles={["fpo"]}>
+                  <FPOProfile />
                 </ProtectedRoute>
               }
             />

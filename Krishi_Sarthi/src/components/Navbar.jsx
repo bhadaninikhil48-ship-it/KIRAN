@@ -10,11 +10,14 @@ import {
   MapPin,
   LogOut,
   User,
+  ChevronRight,
+  Plus,
 } from "lucide-react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import gsap from "gsap";
 import { isReducedMotion } from "../utils/animations";
 import { AuthContext } from "../context/AuthContext";
+import { useAddresses } from "../context/AddressContext";
 import { Avatar } from "./ui/Avatar";
 
 const initialNotifications = [
@@ -69,7 +72,10 @@ export function Navbar({ onMenuToggle }) {
       case "/markets":
         return "Market Intelligence";
       case "/opportunities":
+      case "/best-opportunities":
         return "Best Selling Opportunities";
+      case "/farmer/dashboard":
+        return "Farmer Dashboard";
       case "/buyers":
         return "Find & Match Buyers";
       case "/offers":
@@ -90,6 +96,22 @@ export function Navbar({ onMenuToggle }) {
         return "Buyer Contracts";
       case "/fpo/dashboard":
         return "FPO Cluster Dashboard";
+      case "/fpo/members":
+        return "FPO Member Farmers";
+      case "/fpo/lots":
+        return "FPO Produce Aggregation & Lots";
+      case "/fpo/marketplace":
+        return "Buyer Procurement Demands";
+      case "/fpo/offers":
+        return "FPO Submitted Bids & Negotiations";
+      case "/fpo/contracts":
+        return "FPO Procurement Contracts";
+      case "/fpo/profile":
+        return "FPO Organization Profile";
+      case "/profile":
+        if (user?.role === "buyer") return "Buyer Profile";
+        if (user?.role === "fpo") return "FPO Organization Profile";
+        return "Farmer Profile";
       default:
         if (user?.role === "buyer") return "Buyer Dashboard";
         if (user?.role === "fpo") return "FPO Dashboard";
@@ -128,50 +150,134 @@ export function Navbar({ onMenuToggle }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })));
   };
 
-  // Dynamic location based on user's saved profile data with non-breaking fallback
-  const userLocation =
-    user?.location ||
-    (user?.village && user?.state ? `${user.village} • ${user.state}` : null) ||
-    (user?.district && user?.state ? `${user.district} • ${user.state}` : null) ||
-    (user?.id && localStorage.getItem(`kiran_location_${user.id}`)) ||
-    (user?.role === "buyer"
-      ? "Mumbai Hub • Maharashtra"
-      : user?.role === "fpo"
-      ? "Indore Cluster • Madhya Pradesh"
-      : "Indore Agri Cluster • Madhya Pradesh");
+  const {
+    defaultAddress,
+    selectedAddress,
+    openAddressManager,
+    openAddAddress,
+  } = useAddresses();
+
+  // Role configurations
+  const role = user?.role || "farmer";
+
+  // Address role labels
+  const addressRoleConfig = {
+    farmer: {
+      tag: "Primary Farmgate",
+      addLabel: "+ Add Primary Farmgate",
+    },
+    buyer: {
+      tag: "Procurement Warehouse",
+      addLabel: "+ Add Procurement Warehouse",
+    },
+    fpo: {
+      tag: "Aggregation Hub",
+      addLabel: "+ Add Aggregation Hub",
+    },
+  }[role] || {
+    tag: "Primary Location",
+    addLabel: "+ Add Primary Location",
+  };
+
+  // Profile link path (FPO -> /fpo/profile, Farmer/Buyer -> /profile)
+  const profilePath = role === "fpo" ? "/fpo/profile" : "/profile";
+
+  // FEATURE 1: Profile Location (strictly from profile district + state for all roles)
+  const profileDistrict = (user?.district || "").trim();
+  const profileState = (user?.state || "").trim();
+  const hasProfileLocation = Boolean(profileDistrict && profileState);
+  const profileLocationText = hasProfileLocation
+    ? `${profileDistrict} • ${profileState}`
+    : "Add Profile Details";
+
+  // FEATURE 2: Saved Address / Primary Farmgate / Warehouse / Hub (strictly from Address Management)
+  const activeAddress = selectedAddress || defaultAddress || null;
+  const hasSavedAddress = Boolean(activeAddress);
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-white/95 backdrop-blur-md border-b border-gray-200/90 px-3 sm:px-6 flex items-center justify-between transition-all">
-      {/* Left: Hamburger & Title */}
+      {/* Left: Hamburger, Title, Live Mandi Feeds, and Role Address Trigger */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           type="button"
           onClick={onMenuToggle}
           aria-label="Open navigation menu"
-          className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          className="lg:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
         >
           <Menu size={22} />
         </button>
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap">
             <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate">
               {getPageTitle(location.pathname)}
             </h1>
-            <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
+            <span className="hidden md:inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               Live Mandi Feeds
             </span>
+
+            {/* Address / Farmgate / Hub Trigger immediately beside Live Mandi Feeds */}
+            <div className="flex items-center shrink-0">
+              {hasSavedAddress ? (
+                <button
+                  type="button"
+                  onClick={() => openAddressManager({ flowContext: "normal" })}
+                  className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl border border-gray-200 bg-gray-50/90 hover:bg-emerald-50/80 hover:border-emerald-300 transition-all text-left group cursor-pointer shadow-2xs max-w-[150px] sm:max-w-[220px] md:max-w-[280px]"
+                  title={`${addressRoleConfig.tag} (Click to change or manage addresses)`}
+                >
+                  <div className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <MapPin size={11} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1 leading-none">
+                      <span className="text-[9px] sm:text-[10px] font-bold text-gray-500 uppercase tracking-wider truncate">
+                        {addressRoleConfig.tag}
+                      </span>
+                      {Boolean(activeAddress.is_default) && (
+                        <span className="hidden sm:inline-block text-[8px] sm:text-[9px] font-bold text-emerald-700 bg-emerald-100/70 px-1 py-0.2 rounded">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] sm:text-xs font-semibold text-gray-900 group-hover:text-emerald-800 truncate mt-0.5">
+                      {activeAddress.village_locality || activeAddress.name || activeAddress.district}
+                    </p>
+                  </div>
+                  <ChevronRight size={12} className="text-gray-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openAddAddress({ flowContext: "normal" })}
+                  className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100/80 hover:border-emerald-500 transition-all text-left group cursor-pointer shadow-2xs"
+                  title={`${addressRoleConfig.addLabel} for mandi rates & logistics`}
+                >
+                  <MapPin size={12} className="text-emerald-600 group-hover:scale-110 transition-transform shrink-0" />
+                  <span className="text-[11px] sm:text-xs font-bold text-emerald-800 group-hover:text-emerald-900 whitespace-nowrap">
+                    {addressRoleConfig.addLabel}
+                  </span>
+                  <ChevronRight size={12} className="text-emerald-600 group-hover:translate-x-0.5 transition-all shrink-0" />
+                </button>
+              )}
+            </div>
           </div>
-          <p className="flex items-center gap-1 text-[11px] text-gray-600 truncate font-medium">
-            <MapPin size={12} className="text-emerald-600 shrink-0" />
-            <span className="truncate">{userLocation}</span>
-          </p>
+
+          {/* Profile Location Row: Dynamic for all 3 roles, clickable to role-specific profile */}
+          <Link
+            to={profilePath}
+            className="inline-flex items-center gap-1 text-[11px] text-gray-600 hover:text-emerald-700 font-medium group cursor-pointer truncate max-w-full mt-0.5"
+            title={hasProfileLocation ? "Profile Location (Click to view/edit profile)" : "Add Profile Details"}
+          >
+            <MapPin size={12} className="text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
+            <span className="truncate">{profileLocationText}</span>
+            <ChevronRight size={11} className="text-gray-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all shrink-0" />
+          </Link>
         </div>
       </div>
 
-      {/* Right Side: Quick stats, Notifications, Profile */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      {/* Right Side: Language, Notifications, Profile */}
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
         <select
           value={i18n.language}
           onChange={(e) => i18n.changeLanguage(e.target.value)}

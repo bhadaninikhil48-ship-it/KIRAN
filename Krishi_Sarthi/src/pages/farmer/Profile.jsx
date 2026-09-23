@@ -89,18 +89,40 @@ export function Profile() {
             });
           }
         } else {
-          setFormData((prev) => ({
-            ...prev,
+          // For Buyer and other roles: load from user context and cached profile
+          let cachedProfile = {};
+          if (user?.id) {
+            try {
+              const saved = localStorage.getItem(`kiran_profile_${user.id}`);
+              if (saved) cachedProfile = JSON.parse(saved);
+            } catch {}
+          }
+          setFormData({
             name: user?.name || "",
             email: user?.email || "",
-          }));
+            phone: user?.phone || cachedProfile.phone || "",
+            village: user?.village || cachedProfile.village || "",
+            district: user?.district || cachedProfile.district || "",
+            state: user?.state || cachedProfile.state || "",
+          });
         }
       } catch (err) {
         // Gracefully keep user context data
+        let cachedProfile = {};
+        if (user?.id) {
+          try {
+            const saved = localStorage.getItem(`kiran_profile_${user.id}`);
+            if (saved) cachedProfile = JSON.parse(saved);
+          } catch {}
+        }
         setFormData((prev) => ({
           ...prev,
           name: user?.name || "",
           email: user?.email || "",
+          phone: user?.phone || cachedProfile.phone || "",
+          village: user?.village || cachedProfile.village || "",
+          district: user?.district || cachedProfile.district || "",
+          state: user?.state || cachedProfile.state || "",
         }));
       } finally {
         setLoading(false);
@@ -209,7 +231,7 @@ export function Profile() {
         });
       }
 
-      const locStr = [formData.village || formData.district, formData.state]
+      const locStr = [formData.district?.trim(), formData.state?.trim()]
         .filter(Boolean)
         .join(" • ");
 
@@ -219,14 +241,28 @@ export function Profile() {
         avatar: avatar,
         phone: formData.phone,
         village: formData.village,
-        district: formData.district,
-        state: formData.state,
-        location: locStr,
+        district: formData.district?.trim() || "",
+        state: formData.state?.trim() || "",
+        location: locStr || null,
       });
+
+      if (user?.id) {
+        try {
+          localStorage.setItem(
+            `kiran_profile_${user.id}`,
+            JSON.stringify({
+              phone: formData.phone,
+              village: formData.village,
+              district: formData.district?.trim() || "",
+              state: formData.state?.trim() || "",
+            })
+          );
+        } catch {}
+      }
 
       setSuccessMessage("Profile details updated successfully!");
     } catch (err) {
-      const locStr = [formData.village || formData.district, formData.state]
+      const locStr = [formData.district?.trim(), formData.state?.trim()]
         .filter(Boolean)
         .join(" • ");
 
@@ -236,11 +272,25 @@ export function Profile() {
         avatar: avatar,
         phone: formData.phone,
         village: formData.village,
-        district: formData.district,
-        state: formData.state,
-        location: locStr,
+        district: formData.district?.trim() || "",
+        state: formData.state?.trim() || "",
+        location: locStr || null,
       });
-      setSuccessMessage("Profile updated locally!");
+
+      if (user?.id) {
+        try {
+          localStorage.setItem(
+            `kiran_profile_${user.id}`,
+            JSON.stringify({
+              phone: formData.phone,
+              village: formData.village,
+              district: formData.district?.trim() || "",
+              state: formData.state?.trim() || "",
+            })
+          );
+        } catch {}
+      }
+      setSuccessMessage("Profile updated successfully!");
     } finally {
       setSaving(false);
     }

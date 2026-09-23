@@ -149,13 +149,13 @@ export function BuyerOffers() {
             </h1>
 
             <Badge variant="blue" dot>
-              Farmer Bids
+              Supplier Bids
             </Badge>
           </div>
 
           <p className="mt-1 text-xs sm:text-sm text-gray-500">
-            Review competitive crop supply offers from local farmers, negotiate
-            terms, or accept directly to create legal contracts.
+            Review competitive crop supply offers from local farmers and FPO
+            collectives, negotiate terms, or accept directly to create legal contracts.
           </p>
         </div>
 
@@ -276,11 +276,20 @@ export function BuyerOffers() {
                       </div>
 
                       <p className="text-xs text-gray-500 mt-0.5">
-                        Farmer:{" "}
-                        <strong className="text-gray-800">
-                          {offer.farmer_name}
-                        </strong>{" "}
-                        • Linked to Requirement #{offer.requirement_id}
+                        {offer.seller_type === "fpo" ? (
+                          <>
+                            <span className="inline-flex items-center px-1.5 py-0.5 mr-1.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                              FPO Collective
+                            </span>
+                            FPO: <strong className="text-gray-800">{offer.fpo_name || offer.seller_name || "FPO Supplier"}</strong>
+                            {offer.lot_number && <span className="ml-1 text-gray-500 font-mono">({offer.lot_number})</span>}
+                          </>
+                        ) : (
+                          <>
+                            Farmer: <strong className="text-gray-800">{offer.farmer_name || offer.seller_name || "Farmer"}</strong>
+                          </>
+                        )}
+                        {" • "}Linked to Requirement #{offer.requirement_id}
                       </p>
                     </div>
                   </div>
@@ -413,7 +422,7 @@ export function BuyerOffers() {
         isOpen={Boolean(activeNegotiationOffer)}
         onClose={() => setActiveNegotiationOffer(null)}
         title="Price Negotiation & Terms"
-        subtitle={`Negotiating ${activeNegotiationOffer?.crop_name} offer with ${activeNegotiationOffer?.farmer_name}`}
+        subtitle={`Negotiating ${activeNegotiationOffer?.crop_name} offer with ${activeNegotiationOffer?.fpo_name || activeNegotiationOffer?.seller_name || activeNegotiationOffer?.farmer_name || "Supplier"}`}
       >
         <div className="space-y-4 text-xs sm:text-sm">
           {activeNegotiationOffer && (
@@ -462,6 +471,8 @@ export function BuyerOffers() {
                     <span>
                       {item.sender_role === "buyer"
                         ? "You (Buyer)"
+                        : item.sender_role === "fpo"
+                        ? `${item.sender_name || "FPO"} (FPO)`
                         : item.sender_name || "Farmer"}
                     </span>
 

@@ -1,6 +1,6 @@
 import express from "express";
 
-import { getBuyerContracts, getFarmerContracts } from "../controllers/contractController.js";
+import { getBuyerContracts, getFarmerContracts, getFpoContracts } from "../controllers/contractController.js";
 
 import { protect } from "../middleware/authMiddleware.js";
 import { allowRoles } from "../middleware/roleMiddleware.js";
@@ -19,6 +19,20 @@ router.get(
     protect,
     allowRoles("farmer"),
     getFarmerContracts
+);
+
+router.get(
+    "/fpo",
+    protect,
+    allowRoles("fpo"),
+    getFpoContracts
+);
+
+router.get(
+    "/",
+    protect,
+    allowRoles("buyer"),
+    getBuyerContracts
 );
 
 export default router;

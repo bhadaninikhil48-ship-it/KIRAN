@@ -1,25 +1,27 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { api } from "../../services/api";
+import { Card } from "../../components/ui/Card";
+import { Button } from "../../components/ui/Button";
+import { Badge } from "../../components/ui/Badge";
+import { StatusBadge } from "../../components/ui/StatusBadge";
+import { CropImage } from "../../components/ui/CropImage";
+import { LoadingState } from "../../components/ui/LoadingState";
 import {
   ReceiptText,
   ShieldCheck,
-  Truck,
-  FileCheck,
   Calendar,
   MapPin,
-  PhoneCall,
-  User,
-  Info,
   RefreshCw,
+  Building,
+  Mail,
+  AlertCircle,
+  PackageCheck,
+  FileCheck,
+  Truck,
 } from "lucide-react";
-import api from "../../services/api";
-import { Card } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
-import { Button } from "../../components/ui/Button";
-import { StatusBadge } from "../../components/ui/StatusBadge";
-import { CropImage } from "../../components/ui/CropImage";
 
-export function BuyerContracts() {
+export function FPOContracts() {
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,11 +30,11 @@ export function BuyerContracts() {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.get("/api/contracts/buyer");
+      const res = await api.get("/api/fpo/contracts");
       setContracts(res.contracts || []);
     } catch (err) {
-      console.error("Error fetching buyer contracts:", err);
-      setError("Failed to load your contracts.");
+      console.error("Error loading FPO contracts:", err);
+      setError(err.message || "Failed to load contracts.");
     } finally {
       setLoading(false);
     }
@@ -45,59 +47,58 @@ export function BuyerContracts() {
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              Legal Fulfillment Contracts
+              FPO Binding Trade Contracts
             </h1>
             <Badge variant="emerald" dot>
-              Binding Digital Deeds
+              Digital Deeds
             </Badge>
           </div>
           <p className="mt-1 text-xs sm:text-sm text-gray-500">
-            Enforceable digital trade agreements generated upon offer acceptance with complete fulfillment tracking.
+            Finalized digital sale deeds with verified buyers. Lock in guaranteed procurement terms and settlement values.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Button
-            size="sm"
-            variant="outline"
-            icon={RefreshCw}
-            onClick={loadContracts}
-          >
+          <Button size="sm" variant="outline" icon={RefreshCw} onClick={loadContracts}>
             Refresh
           </Button>
-          <Link to="/buyer/offers">
-            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              Browse Farmer Offers
+          <Link to="/fpo/offers">
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+              Check Active Bids
             </Button>
           </Link>
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm flex items-center gap-2">
+          <AlertCircle size={18} className="shrink-0 text-red-600" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Contracts Listing */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm">
-          {error}
+          <LoadingState message="Loading your finalized contracts..." />
         </div>
       ) : contracts.length === 0 ? (
-        <Card className="text-center py-16 px-6 border-dashed border-2 border-gray-300">
+        <Card className="text-center py-16 px-6 border-dashed border-2 border-gray-200">
           <div className="max-w-md mx-auto space-y-4">
             <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
               <ReceiptText size={32} />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">No Contracts Generated Yet</h2>
+            <h2 className="text-xl font-bold text-gray-900">No Finalized Contracts Yet</h2>
             <p className="text-sm text-gray-500 leading-relaxed">
-              When you accept a farmer's offer, a legally binding contract will be minted instantly with delivery terms, agreed unit rate, and total payable amount.
+              When an enterprise buyer accepts your offer, an enforceable digital deed will be minted here containing the final agreed terms.
             </p>
-            <Link to="/buyer/offers">
+            <Link to="/fpo/marketplace">
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                Review Incoming Offers
+                Find Buyer Demands
               </Button>
             </Link>
           </div>
@@ -119,13 +120,18 @@ export function BuyerContracts() {
                         Contract #{contract.id}: {contract.crop_name} Consignment
                       </h2>
                       <StatusBadge status={contract.status === "active" ? "Confirmed" : contract.status || "Active"} />
+                      {contract.lot_number && (
+                        <Badge variant="purple">
+                          Aggregated Lot: {contract.lot_number}
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-xs text-gray-500 mt-1 flex flex-wrap items-center gap-2">
-                      <span>Generated: {new Date(contract.created_at).toLocaleDateString()}</span>
+                      <span>Minted: {new Date(contract.created_at).toLocaleDateString()}</span>
                       <span>•</span>
                       <span>Offer #{contract.offer_id}</span>
                       <span>•</span>
-                      <span>Requirement #{contract.requirement_id}</span>
+                      <span>Demand #{contract.requirement_id}</span>
                     </p>
                   </div>
                 </div>
@@ -138,14 +144,14 @@ export function BuyerContracts() {
                 </div>
               </div>
 
-              {/* Specifications Grid */}
+              {/* Terms Breakdown */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 text-xs sm:text-sm">
                 <div>
-                  <span className="text-xs text-gray-400 block">Agreed Rate</span>
+                  <span className="text-xs text-gray-400 block">Agreed Unit Rate</span>
                   <span className="font-bold text-gray-900 text-base">
                     ₹{Number(contract.agreed_price).toLocaleString()} / {contract.unit}
                   </span>
-                  <span className="text-[11px] text-emerald-600 block mt-0.5">Fixed rate deed</span>
+                  <span className="text-[11px] text-emerald-600 block mt-0.5">Final agreed terms</span>
                 </div>
 
                 <div>
@@ -161,56 +167,36 @@ export function BuyerContracts() {
                 <div>
                   <span className="text-xs text-gray-400 block">Delivery Destination</span>
                   <span className="font-bold text-gray-900 text-base flex items-center gap-1">
-                    <MapPin size={14} className="text-emerald-600" />
-                    {contract.delivery_location || "Buyer Warehouse"}
+                    <MapPin size={14} className="text-emerald-600 shrink-0" />
+                    <span className="truncate">{contract.delivery_location || "Buyer Receiving Warehouse"}</span>
                   </span>
                   {contract.required_by && (
                     <span className="text-[11px] text-gray-500 block mt-0.5">
-                      By: {new Date(contract.required_by).toLocaleDateString()}
+                      Required by: {new Date(contract.required_by).toLocaleDateString()}
                     </span>
                   )}
                 </div>
 
-                {/* Section 15 Payment notice */}
-                <div className="bg-amber-50/60 p-3 rounded-xl border border-amber-200/70">
-                  <span className="text-xs text-amber-800 block font-medium">Payment Settlement</span>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    <FileCheck size={16} className="text-amber-700" />
-                    <span className="font-bold text-amber-800 text-xs">
-                      Pending Gateway
-                    </span>
-                  </div>
-                  <div className="mt-1 text-[10px] text-amber-700 flex items-start gap-1">
-                    <Info size={11} className="mt-0.5 flex-shrink-0" />
-                    <span>Direct escrow payment integration pending backend support.</span>
-                  </div>
+                <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 text-xs">
+                  <span className="text-[11px] font-semibold text-emerald-800 uppercase tracking-wider block">
+                    Institutional Buyer
+                  </span>
+                  <p className="font-bold text-gray-900 text-sm mt-0.5">{contract.buyer_name}</p>
+                  {contract.buyer_email && (
+                    <p className="text-[11px] text-gray-500 truncate flex items-center gap-1 mt-0.5">
+                      <Mail size={11} /> {contract.buyer_email}
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Seller Contact & Counterpart Footer */}
+              {/* Footer */}
               <div className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2 text-gray-600 flex-wrap">
-                  <User size={14} className="text-emerald-600 shrink-0" />
-                  {contract.seller_type === "fpo" ? (
-                    <span>
-                      <span className="inline-flex items-center px-1.5 py-0.5 mr-1.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                        FPO Collective
-                      </span>
-                      Seller: <strong className="text-gray-800">{contract.fpo_name || contract.seller_name || "FPO Supplier"}</strong>
-                      {contract.lot_number && <span className="ml-1 text-gray-500 font-mono">(Lot: {contract.lot_number})</span>}
-                      {contract.fpo_contact_person && <span className="ml-1 text-gray-500">• Contact: {contract.fpo_contact_person}</span>}
-                    </span>
-                  ) : (
-                    <span>
-                      Seller: <strong className="text-gray-800">{contract.seller_name || contract.farmer_name || "Enrolled Farmer"}</strong>
-                      {contract.farmer_district && ` (${contract.farmer_district}, ${contract.farmer_state || ""})`}
-                    </span>
-                  )}
-                  {(contract.seller_type === "fpo" ? contract.fpo_phone : contract.farmer_phone) && (
-                    <span className="text-emerald-700 font-medium flex items-center gap-1 ml-2">
-                      <PhoneCall size={12} /> {contract.seller_type === "fpo" ? contract.fpo_phone : contract.farmer_phone}
-                    </span>
-                  )}
+                <div className="flex items-center gap-2 text-gray-600">
+                  <PackageCheck size={14} className="text-emerald-600" />
+                  <span>
+                    FPO Collective Depot: <strong>{contract.aggregation_center || "Regional Hub"}</strong>
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -229,4 +215,4 @@ export function BuyerContracts() {
   );
 }
 
-export default BuyerContracts;
+export default FPOContracts;

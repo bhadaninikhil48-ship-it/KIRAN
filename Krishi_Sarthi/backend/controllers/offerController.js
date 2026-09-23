@@ -98,6 +98,10 @@ export const getBuyerOffers = async (req, res) => {
             `SELECT
                 offers.id,
                 offers.requirement_id,
+                offers.seller_type,
+                offers.farmer_id,
+                offers.fpo_id,
+                offers.fpo_lot_id,
                 offers.offer_price,
                 offers.quantity,
                 offers.message,
@@ -108,14 +112,21 @@ export const getBuyerOffers = async (req, res) => {
                 buyer_requirements.quality_grade,
                 buyer_requirements.max_price,
                 buyer_requirements.location,
-                users.name AS farmer_name
+                COALESCE(farmer_users.name, fpo_profiles.fpo_name, 'Unknown Seller') AS farmer_name,
+                COALESCE(farmer_users.name, fpo_profiles.fpo_name, 'Unknown Seller') AS seller_name,
+                fpo_profiles.fpo_name,
+                fpo_lots.lot_number
              FROM offers
              INNER JOIN buyer_requirements
                 ON offers.requirement_id = buyer_requirements.id
-             INNER JOIN farmer_profiles
+             LEFT JOIN farmer_profiles
                 ON offers.farmer_id = farmer_profiles.id
-             INNER JOIN users
-                ON farmer_profiles.user_id = users.id
+             LEFT JOIN users farmer_users
+                ON farmer_profiles.user_id = farmer_users.id
+             LEFT JOIN fpo_profiles
+                ON offers.fpo_id = fpo_profiles.id
+             LEFT JOIN fpo_lots
+                ON offers.fpo_lot_id = fpo_lots.id
              WHERE buyer_requirements.buyer_id = ?
              ORDER BY offers.created_at DESC`,
             [buyerId]
@@ -151,6 +162,7 @@ export const updateOfferStatus = async (req, res) => {
 
         await connection.beginTransaction();
 
+        // 1. Lock the offer and join buyer requirement
         const [offers] = await connection.query(
             `SELECT
                 offers.id,
@@ -158,6 +170,9 @@ export const updateOfferStatus = async (req, res) => {
                 offers.offer_price,
                 offers.quantity,
                 offers.farmer_id,
+                offers.fpo_id,
+                offers.fpo_lot_id,
+                offers.seller_type,
                 buyer_requirements.id AS requirement_id,
                 buyer_requirements.buyer_id,
                 buyer_requirements.crop_name,
@@ -169,13 +184,12 @@ export const updateOfferStatus = async (req, res) => {
              INNER JOIN buyer_requirements
                 ON offers.requirement_id = buyer_requirements.id
              WHERE offers.id = ?
-               AND buyer_requirements.buyer_id = ?`,
-            [id, buyerId]
+             FOR UPDATE`,
+            [id]
         );
 
         if (offers.length === 0) {
             await connection.rollback();
-
             return res.status(404).json({
                 message: "Offer not found"
             });
@@ -183,30 +197,129 @@ export const updateOfferStatus = async (req, res) => {
 
         const offer = offers[0];
 
+        // 2. Verify requirement ownership by the authenticated buyer
+        if (offer.buyer_id !== buyerId) {
+            await connection.rollback();
+            return res.status(403).json({
+                message: "Unauthorized: You do not own the buyer requirement for this offer"
+            });
+        }
+
+        // 3. Verify offer is still pending
         if (offer.status !== "pending") {
             await connection.rollback();
-
             return res.status(400).json({
                 message: "This offer has already been processed"
             });
         }
 
-        await connection.query(
-            `UPDATE offers
-             SET status = ?
-             WHERE id = ?`,
-            [status, id]
+        // 4. Duplicate contract protection: Check if contract already exists
+        const [existingContracts] = await connection.query(
+            `SELECT id FROM contracts WHERE offer_id = ? FOR UPDATE`,
+            [offer.id]
+        );
+        if (existingContracts.length > 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                message: "Contract already exists for this offer"
+            });
+        }
+
+        // If status is rejected, update offer and commit
+        if (status === "rejected") {
+            await connection.query(
+                `UPDATE offers
+                 SET status = 'rejected'
+                 WHERE id = ?`,
+                [id]
+            );
+
+            await connection.commit();
+            return res.status(200).json({
+                message: "Offer rejected successfully",
+                contractCreated: false
+            });
+        }
+
+        // Status is "accepted"
+        // 5. Determine final negotiated terms (inspect offer_negotiations)
+        const [negotiations] = await connection.query(
+            `SELECT price, quantity
+             FROM offer_negotiations
+             WHERE offer_id = ?
+             ORDER BY created_at DESC, id DESC
+             LIMIT 1`,
+            [offer.id]
         );
 
-        if (status === "accepted") {
-            const totalAmount =
-                Number(offer.quantity) * Number(offer.offer_price);
+        let finalPrice = Number(offer.offer_price);
+        let finalQuantity = Number(offer.quantity);
 
-            await connection.query(
+        if (negotiations.length > 0) {
+            finalPrice = Number(negotiations[0].price);
+            finalQuantity = Number(negotiations[0].quantity);
+        }
+
+        // 6. Validate final terms
+        if (isNaN(finalPrice) || finalPrice <= 0 || isNaN(finalQuantity) || finalQuantity <= 0) {
+            await connection.rollback();
+            return res.status(400).json({
+                message: "Invalid contract price or quantity"
+            });
+        }
+
+        const totalAmount = Number((finalQuantity * finalPrice).toFixed(2));
+
+        // 7. Handle polymorphic seller (FPO vs Farmer)
+        if (offer.seller_type === "fpo") {
+            if (!offer.fpo_id || !offer.fpo_lot_id) {
+                await connection.rollback();
+                return res.status(400).json({
+                    message: "Invalid FPO offer: Missing FPO or lot information"
+                });
+            }
+
+            // Lock and inspect the linked FPO lot
+            const [lots] = await connection.query(
+                `SELECT id, fpo_id, status, total_quantity
+                 FROM fpo_lots
+                 WHERE id = ? AND fpo_id = ?
+                 FOR UPDATE`,
+                [offer.fpo_lot_id, offer.fpo_id]
+            );
+
+            if (lots.length === 0) {
+                await connection.rollback();
+                return res.status(400).json({
+                    message: "Linked FPO lot not found or does not belong to this FPO"
+                });
+            }
+
+            const lot = lots[0];
+
+            if (lot.status !== "offered") {
+                await connection.rollback();
+                return res.status(400).json({
+                    message: `Cannot contract lot: Lot status is '${lot.status}', expected 'offered'`
+                });
+            }
+
+            if (finalQuantity > Number(lot.total_quantity)) {
+                await connection.rollback();
+                return res.status(400).json({
+                    message: `Agreed quantity (${finalQuantity}) exceeds lot total quantity (${lot.total_quantity})`
+                });
+            }
+
+            // Insert FPO contract (farmer_id is NULL)
+            const [contractResult] = await connection.query(
                 `INSERT INTO contracts (
                     offer_id,
                     requirement_id,
                     farmer_id,
+                    fpo_id,
+                    fpo_lot_id,
+                    seller_type,
                     buyer_id,
                     crop_name,
                     quantity,
@@ -215,36 +328,105 @@ export const updateOfferStatus = async (req, res) => {
                     total_amount,
                     quality_grade,
                     delivery_location,
-                    required_by
+                    required_by,
+                    status
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                VALUES (?, ?, NULL, ?, ?, 'fpo', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
                 [
                     offer.id,
                     offer.requirement_id,
-                    offer.farmer_id,
+                    offer.fpo_id,
+                    offer.fpo_lot_id,
                     offer.buyer_id,
                     offer.crop_name,
-                    offer.quantity,
+                    finalQuantity,
                     offer.unit,
-                    offer.offer_price,
+                    finalPrice,
                     totalAmount,
                     offer.quality_grade,
                     offer.location,
                     offer.required_by
                 ]
             );
+
+            // Update FPO lot status atomically: offered -> contracted
+            await connection.query(
+                `UPDATE fpo_lots
+                 SET status = 'contracted'
+                 WHERE id = ?`,
+                [lot.id]
+            );
+
+            // Update offer status
+            await connection.query(
+                `UPDATE offers
+                 SET status = 'accepted'
+                 WHERE id = ?`,
+                [id]
+            );
+
+            await connection.commit();
+
+            return res.status(200).json({
+                message: "Offer accepted successfully",
+                contractCreated: true,
+                contractId: contractResult.insertId
+            });
+
+        } else {
+            // Farmer offer (fpo_id and fpo_lot_id are NULL)
+            const [contractResult] = await connection.query(
+                `INSERT INTO contracts (
+                    offer_id,
+                    requirement_id,
+                    farmer_id,
+                    fpo_id,
+                    fpo_lot_id,
+                    seller_type,
+                    buyer_id,
+                    crop_name,
+                    quantity,
+                    unit,
+                    agreed_price,
+                    total_amount,
+                    quality_grade,
+                    delivery_location,
+                    required_by,
+                    status
+                )
+                VALUES (?, ?, ?, NULL, NULL, 'farmer', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+                [
+                    offer.id,
+                    offer.requirement_id,
+                    offer.farmer_id,
+                    offer.buyer_id,
+                    offer.crop_name,
+                    finalQuantity,
+                    offer.unit,
+                    finalPrice,
+                    totalAmount,
+                    offer.quality_grade,
+                    offer.location,
+                    offer.required_by
+                ]
+            );
+
+            // Update offer status
+            await connection.query(
+                `UPDATE offers
+                 SET status = 'accepted'
+                 WHERE id = ?`,
+                [id]
+            );
+
+            await connection.commit();
+
+            return res.status(200).json({
+                message: "Offer accepted successfully",
+                contractCreated: true,
+                contractId: contractResult.insertId
+            });
         }
-
-        await connection.commit();
-
-        res.status(200).json({
-            message: `Offer ${status} successfully`,
-            contractCreated: status === "accepted"
-        });
-
-    } catch (error) {
-
-        await connection.rollback();
 
         console.error(error);
 

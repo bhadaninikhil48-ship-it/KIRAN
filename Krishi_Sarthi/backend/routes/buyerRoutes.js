@@ -24,7 +24,7 @@ router.get(
 router.get(
     "/requirements/open",
     protect,
-    allowRoles("farmer"),
+    allowRoles("farmer", "fpo"),
     getOpenRequirements
 );
 

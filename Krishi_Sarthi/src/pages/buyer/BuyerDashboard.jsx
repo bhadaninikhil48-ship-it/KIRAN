@@ -19,7 +19,6 @@ import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { StatusBadge } from "../../components/ui/StatusBadge";
 import { CropImage } from "../../components/ui/CropImage";
-import { DashboardLocationCard } from "../../components/location/DashboardLocationCard";
 
 export function BuyerDashboard() {
   const { user } = useContext(AuthContext) || {};
@@ -93,42 +92,36 @@ export function BuyerDashboard() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Header & Location Setup */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
-        <div className="lg:col-span-8 bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-                Buyer Command Center
-              </h1>
-              <Badge variant="blue" dot>
-                Procurement Hub
-              </Badge>
-            </div>
-            <p className="mt-1 text-xs sm:text-sm text-gray-500 max-w-xl">
-              Welcome back, <strong className="text-gray-800">{user?.name || "Buyer"}</strong>. Manage your procurement pipeline, incoming farmer offers, and legal fulfillment contracts.
-            </p>
+      {/* Header */}
+      <div className="bg-white border border-gray-200/90 rounded-2xl p-5 sm:p-6 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              Buyer Command Center
+            </h1>
+            <Badge variant="blue" dot>
+              Procurement Hub
+            </Badge>
           </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            <Button
-              size="sm"
-              variant="outline"
-              icon={RefreshCw}
-              onClick={loadData}
-            >
-              Refresh
-            </Button>
-            <Link to="/buyer/requirements">
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" icon={PlusCircle}>
-                Post Requirement
-              </Button>
-            </Link>
-          </div>
+          <p className="mt-1 text-xs sm:text-sm text-gray-500 max-w-xl">
+            Welcome back, <strong className="text-gray-800">{user?.name || "Buyer"}</strong>. Manage your procurement pipeline, incoming farmer offers, and legal fulfillment contracts.
+          </p>
         </div>
 
-        <div className="lg:col-span-4 flex flex-col justify-center">
-          <DashboardLocationCard className="h-full flex flex-col justify-center" />
+        <div className="flex items-center gap-2.5 shrink-0">
+          <Button
+            size="sm"
+            variant="outline"
+            icon={RefreshCw}
+            onClick={loadData}
+          >
+            Refresh
+          </Button>
+          <Link to="/buyer/requirements">
+            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold" icon={PlusCircle}>
+              Post Requirement
+            </Button>
+          </Link>
         </div>
       </div>
 

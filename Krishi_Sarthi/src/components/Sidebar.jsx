@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
+  Boxes,
+  Building2,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -43,8 +45,13 @@ const buyerNavItems = [
 
 const fpoNavItems = [
   { to: "/fpo/dashboard", key: "Dashboard", label: "FPO Dashboard", icon: LayoutDashboard },
+  { to: "/fpo/members", key: "Members", label: "Member Farmers", icon: Users },
+  { to: "/fpo/lots", key: "Lots", label: "Aggregated Lots", icon: Boxes },
+  { to: "/fpo/marketplace", key: "Marketplace", label: "Buyer Demands", icon: ShoppingBasket },
+  { to: "/fpo/offers", key: "Offers", label: "Submitted Bids", icon: FileText },
+  { to: "/fpo/contracts", key: "Contracts", label: "Contracts", icon: ReceiptText },
   { to: "/markets", key: "Market Intelligence", label: "Market Prices", icon: Store },
-  { to: "/profile", key: "Profile", label: "FPO Profile", icon: User },
+  { to: "/fpo/profile", key: "Profile", label: "FPO Profile", icon: Building2 },
   { to: "/support", key: "Trust & Support", label: "Trust & Support", icon: ShieldCheck },
 ];
 

@@ -59,20 +59,61 @@ export const AuthProvider = ({ children }) => {
               if (profileRes?.profile) {
                 const p = profileRes.profile;
                 extraProfile = {
-                  phone: p.phone,
-                  village: p.village,
-                  district: p.district,
-                  state: p.state,
+                  phone: p.phone || "",
+                  village: p.village || "",
+                  district: p.district || "",
+                  state: p.state || "",
                 };
-                const formattedLoc = [p.village || p.district, p.state].filter(Boolean).join(" • ");
-                if (formattedLoc) {
-                  cachedLocation = formattedLoc;
-                  localStorage.setItem(`kiran_location_${response.user.id}`, formattedLoc);
+                if (p.district && p.state) {
+                  cachedLocation = `${p.district.trim()} • ${p.state.trim()}`;
+                  localStorage.setItem(`kiran_location_${response.user.id}`, cachedLocation);
+                } else {
+                  cachedLocation = null;
+                  localStorage.removeItem(`kiran_location_${response.user.id}`);
                 }
               }
             } catch {
               // Ignore if profile fetch is unavailable
             }
+          } else if (response.user.role === "fpo") {
+            try {
+              const profileRes = await api.get("/api/fpo/profile");
+              if (profileRes?.profile) {
+                const p = profileRes.profile;
+                extraProfile = {
+                  phone: p.phone || "",
+                  village: p.village_locality || "",
+                  district: p.district || "",
+                  state: p.state || "",
+                };
+                if (p.district && p.state) {
+                  cachedLocation = `${p.district.trim()} • ${p.state.trim()}`;
+                  localStorage.setItem(`kiran_location_${response.user.id}`, cachedLocation);
+                } else {
+                  cachedLocation = null;
+                  localStorage.removeItem(`kiran_location_${response.user.id}`);
+                }
+              }
+            } catch {
+              // Ignore if profile fetch is unavailable
+            }
+          } else if (response.user.role === "buyer") {
+            try {
+              const savedBuyerProfile = localStorage.getItem(`kiran_profile_${response.user.id}`);
+              if (savedBuyerProfile) {
+                const bp = JSON.parse(savedBuyerProfile);
+                extraProfile = {
+                  phone: bp.phone || "",
+                  village: bp.village || "",
+                  district: bp.district || "",
+                  state: bp.state || "",
+                };
+                if (bp.district && bp.state) {
+                  cachedLocation = `${bp.district.trim()} • ${bp.state.trim()}`;
+                  localStorage.setItem(`kiran_location_${response.user.id}`, cachedLocation);
+                }
+              }
+            } catch {}
           }
 
           const mergedUser = {
@@ -95,14 +136,88 @@ export const AuthProvider = ({ children }) => {
     verifySession();
   }, []);
 
-  const login = (userData, jwtToken) => {
+  const login = async (userData, jwtToken) => {
     const cachedAvatar =
       userData?.avatar ||
       (userData?.id ? localStorage.getItem(`kiran_avatar_${userData.id}`) : null);
-    const cachedLocation =
+    let cachedLocation =
       userData?.location ||
       (userData?.id ? localStorage.getItem(`kiran_location_${userData.id}`) : null);
-    const mergedUser = { ...userData, avatar: cachedAvatar || null, location: cachedLocation || null };
+    let extraProfile = {};
+
+    if (userData?.role === "farmer") {
+      try {
+        const profileRes = await api.get("/api/farmer/profile", {
+          headers: { Authorization: `Bearer ${jwtToken}` },
+        });
+        if (profileRes?.profile) {
+          const p = profileRes.profile;
+          extraProfile = {
+            phone: p.phone || "",
+            village: p.village || "",
+            district: p.district || "",
+            state: p.state || "",
+          };
+          if (p.district && p.state) {
+            cachedLocation = `${p.district.trim()} • ${p.state.trim()}`;
+            localStorage.setItem(`kiran_location_${userData.id}`, cachedLocation);
+          } else {
+            cachedLocation = null;
+            localStorage.removeItem(`kiran_location_${userData.id}`);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch farmer profile on login:", err);
+      }
+    } else if (userData?.role === "fpo") {
+      try {
+        const profileRes = await api.get("/api/fpo/profile", {
+          headers: { Authorization: `Bearer ${jwtToken}` },
+        });
+        if (profileRes?.profile) {
+          const p = profileRes.profile;
+          extraProfile = {
+            phone: p.phone || "",
+            village: p.village_locality || "",
+            district: p.district || "",
+            state: p.state || "",
+          };
+          if (p.district && p.state) {
+            cachedLocation = `${p.district.trim()} • ${p.state.trim()}`;
+            localStorage.setItem(`kiran_location_${userData.id}`, cachedLocation);
+          } else {
+            cachedLocation = null;
+            localStorage.removeItem(`kiran_location_${userData.id}`);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch fpo profile on login:", err);
+      }
+    } else if (userData?.role === "buyer") {
+      try {
+        const savedBuyerProfile = localStorage.getItem(`kiran_profile_${userData.id}`);
+        if (savedBuyerProfile) {
+          const bp = JSON.parse(savedBuyerProfile);
+          extraProfile = {
+            phone: bp.phone || "",
+            village: bp.village || "",
+            district: bp.district || "",
+            state: bp.state || "",
+          };
+          if (bp.district && bp.state) {
+            cachedLocation = `${bp.district.trim()} • ${bp.state.trim()}`;
+            localStorage.setItem(`kiran_location_${userData.id}`, cachedLocation);
+          }
+        }
+      } catch {}
+    }
+
+    const mergedUser = {
+      ...userData,
+      ...extraProfile,
+      avatar: cachedAvatar || null,
+      location: cachedLocation || null,
+    };
     setUser(mergedUser);
     setToken(jwtToken);
     localStorage.setItem("user", JSON.stringify(mergedUser));
@@ -119,19 +234,19 @@ export const AuthProvider = ({ children }) => {
   const updateUser = (updatedFields) => {
     setUser((prev) => {
       const next = { ...prev, ...updatedFields };
+      if (next.district && next.state) {
+        next.location = `${next.district.trim()} • ${next.state.trim()}`;
+        if (next.id) localStorage.setItem(`kiran_location_${next.id}`, next.location);
+      } else {
+        next.location = null;
+        if (next.id) localStorage.removeItem(`kiran_location_${next.id}`);
+      }
       localStorage.setItem("user", JSON.stringify(next));
       if (next?.id && updatedFields.avatar !== undefined) {
         if (updatedFields.avatar) {
           localStorage.setItem(`kiran_avatar_${next.id}`, updatedFields.avatar);
         } else {
           localStorage.removeItem(`kiran_avatar_${next.id}`);
-        }
-      }
-      if (next?.id && updatedFields.location !== undefined) {
-        if (updatedFields.location) {
-          localStorage.setItem(`kiran_location_${next.id}`, updatedFields.location);
-        } else {
-          localStorage.removeItem(`kiran_location_${next.id}`);
         }
       }
       return next;

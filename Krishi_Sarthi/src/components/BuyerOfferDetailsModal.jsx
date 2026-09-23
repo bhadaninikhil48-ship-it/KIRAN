@@ -30,7 +30,7 @@ export function BuyerOfferDetailsModal({
 
   const profile = resolveBuyerProfile(requirement);
   const buyerLocation = requirement.location || profile.location || "Delivery Point on Request";
-  const origin = farmerOrigin || "Indore Agri Cluster • Madhya Pradesh";
+  const origin = farmerOrigin || "Edit Profile";
 
   const transitInfo = calculateTransitDistance(origin, buyerLocation);
 
