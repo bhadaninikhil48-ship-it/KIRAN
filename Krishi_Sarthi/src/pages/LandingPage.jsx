@@ -19,6 +19,7 @@ import {
   Scale,
   Clock,
   HelpCircle,
+  Smartphone,
 } from "lucide-react";
 import sihLogo from "../assets/Kiran.png";
 import heroImg from "../assets/landing/hero.jpg";
@@ -401,7 +402,7 @@ export function LandingPage() {
               </p>
 
               {/* Primary Call-To-Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
+              <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
                 <Link
                   to="/register"
                   className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-base shadow-sm hover:shadow-md active:scale-98 transition-all flex items-center justify-center gap-2"
@@ -409,6 +410,21 @@ export function LandingPage() {
                   <span>Get Started Free</span>
                   <ArrowRight size={18} />
                 </Link>
+
+                <a
+                  href="https://github.com/bhadaninikhil48-ship-it/KIRAN/releases/download/v1.0.0/app-release.apk"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white hover:bg-emerald-50/60 border border-emerald-300/80 text-gray-900 font-bold hover:border-emerald-400 shadow-2xs hover:shadow-sm active:scale-98 transition-all flex items-center justify-center gap-2.5"
+                >
+                  <Smartphone size={20} className="text-emerald-700 shrink-0" />
+                  <div className="text-left">
+                    <span className="block text-sm font-extrabold text-gray-950 leading-tight">
+                      Download KIRAN App
+                    </span>
+                    <span className="block text-[11px] font-medium text-emerald-700 leading-tight">
+                      Available for Android
+                    </span>
+                  </div>
+                </a>
 
                 <button
                   onClick={() => scrollToSection("how-it-works")}
